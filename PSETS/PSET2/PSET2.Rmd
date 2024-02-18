@@ -1,0 +1,88 @@
+---
+title: "S&DS363_PSET_2"
+author: "Ethan Mathieu, Tony Ruan, Humrya Karim"
+date: "2024-02-16"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+install.packages("biotools")
+install.packages("klaR")
+install.packages("ggExtra")
+install.packages("heplots")
+install.packages("rgl")
+
+library(MASS)
+library(biotools)
+library(klaR)
+library(car)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(ggExtra)
+library(heplots, exclude = "rgl")
+
+```
+
+``` {r data_set_up}
+
+GED <- read.csv("Global_Education.csv")
+names(GED)
+GED_edited <- GED |>
+  filter(Youth_15_24_Literacy_Rate_Female > 0 & Youth_15_24_Literacy_Rate_Male > 0)
+
+#GED_Leveled <- GED |>
+#   mutate(ed_level = case_when(
+#    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 80 ~ "Low",
+#    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 80 &
+#    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 90 ~ "Medium",
+#    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 90 ~ "High"
+#  )) |> 
+#    mutate(Unemployment_Rate = as.numeric(Unemployment_Rate)) |>
+#   mutate(Birth_Rate = as.numeric(Birth_Rate))
+
+#GED
+
+GED_edited
+
+```
+
+```{r question_1}
+
+par(mfrow = c(1, 2))
+boxplot(GED_edited$Youth_15_24_Literacy_Rate_Female, main = "Female Literacy Rate")
+boxplot(GED_edited$Youth_15_24_Literacy_Rate_Mal, main = "Male Literacy Rate")
+par(mfrow = c(1, 1))
+
+par(mfrow = c(1, 2))
+boxplot(GED_edited$Completion_Rate_Upper_Secondary_Female, main = "Female School Completiton Rate")
+boxplot(GED_edited$Completion_Rate_Upper_Secondary_Male, main = "Male School Completion Rate")
+par(mfrow = c(1, 1))
+
+par(mfrow = c(1,2), pty = "s", cex = 0.8)
+cqplot(data.frame(
+  OOSR_Upper_Secondary_Age_Male = GED_edited$OOSR_Upper_Secondary_Age_Male,
+  Youth_15_24_Literacy_Rate_Male = GED_edited$Youth_15_24_Literacy_Rate_Male
+), main = "Male")
+cqplot(data.frame(
+  OOSR_Upper_Secondary_Age_Female = GED_edited$OOSR_Upper_Secondary_Age_Female,
+  Youth_15_24_Literacy_Rate_Female = GED_edited$Youth_15_24_Literacy_Rate_Female
+), main = "Female")
+par(mfrow = c(1, 1))
+
+boxM(data.frame(
+  OOSR_Upper_Secondary_Age_Male = GED_edited$OOSR_Upper_Secondary_Age_Male,
+  Youth_15_24_Literacy_Rate_Male = GED_edited$Youth_15_24_Literacy_Rate_Male
+), data.frame(
+  OOSR_Upper_Secondary_Age_Male = GED_edited$OOSR_Upper_Secondary_Age_Male,
+  Youth_15_24_Literacy_Rate_Male = GED_edited$Youth_15_24_Literacy_Rate_Male)
+```
+
+
+```{r question_2}
+
+
+```
+
