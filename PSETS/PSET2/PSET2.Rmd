@@ -29,9 +29,17 @@ library(heplots, exclude = "rgl")
 ``` {r data_set_up}
 
 GED <- read.csv("Global_Education.csv")
-names(GED)
-GED_edited <- GED |>
-  filter(Youth_15_24_Literacy_Rate_Female > 0 & Youth_15_24_Literacy_Rate_Male > 0)
+
+GED_Leveled <- GED |>
+   mutate(ed_level = case_when(
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 50 ~ "Low",
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 50 &
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 80 ~ "Medium",
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 80 ~ "High"
+  )) |>
+    select(Completion_Rate_Upper_Secondary_Female, Birth_Rate, ed_level)
+    
+
 
 #GED_Leveled <- GED |>
 #   mutate(ed_level = case_when(
@@ -45,44 +53,46 @@ GED_edited <- GED |>
 
 #GED
 
-GED_edited
+GED_Leveled
 
 ```
 
 ```{r question_1}
 
-par(mfrow = c(1, 2))
-boxplot(GED_edited$Youth_15_24_Literacy_Rate_Female, main = "Female Literacy Rate")
-boxplot(GED_edited$Youth_15_24_Literacy_Rate_Mal, main = "Male Literacy Rate")
-par(mfrow = c(1, 1))
-
-par(mfrow = c(1, 2))
-boxplot(GED_edited$Completion_Rate_Upper_Secondary_Female, main = "Female School Completiton Rate")
-boxplot(GED_edited$Completion_Rate_Upper_Secondary_Male, main = "Male School Completion Rate")
-par(mfrow = c(1, 1))
-
 par(mfrow = c(1,2), pty = "s", cex = 0.8)
-cqplot(data.frame(
-  OOSR_Upper_Secondary_Age_Male = GED_edited$OOSR_Upper_Secondary_Age_Male,
-  Youth_15_24_Literacy_Rate_Male = GED_edited$Youth_15_24_Literacy_Rate_Male
-), main = "Male")
-cqplot(data.frame(
-  OOSR_Upper_Secondary_Age_Female = GED_edited$OOSR_Upper_Secondary_Age_Female,
-  Youth_15_24_Literacy_Rate_Female = GED_edited$Youth_15_24_Literacy_Rate_Female
-), main = "Female")
+boxplot(GED_Leveled$Birth_Rate ~ GED_Leveled$ed_level)
+boxplot(GED_Leveled$Completion_Rate_Upper_Secondary_Female ~ GED_Leveled$ed_level)
 par(mfrow = c(1, 1))
 
-boxM(data.frame(
-  OOSR_Upper_Secondary_Age_Male = GED_edited$OOSR_Upper_Secondary_Age_Male,
-  Youth_15_24_Literacy_Rate_Male = GED_edited$Youth_15_24_Literacy_Rate_Male
-), data.frame(
-  OOSR_Upper_Secondary_Age_Male = GED_edited$OOSR_Upper_Secondary_Age_Male,
-  Youth_15_24_Literacy_Rate_Male = GED_edited$Youth_15_24_Literacy_Rate_Male)
-```
+par(mfrow = c(1,3), pty = "s", cex = 0.8)
+cqplot(GED_Leveled[GED_Leveled$ed_level == "Low", c("Birth_Rate","Completion_Rate_Upper_Secondary_Female")], main = "Low")
+cqplot(GED_Leveled[GED_Leveled$ed_level == "Medium", c("Birth_Rate","Completion_Rate_Upper_Secondary_Female")], main = "Medium")
+cqplot(GED_Leveled[GED_Leveled$ed_level == "High", c("Birth_Rate","Completion_Rate_Upper_Secondary_Female")], main = "High")
+par(mfrow = c(1, 1))
 
+boxM(GED_Leveled[,c("Birth_Rate", "Completion_Rate_Upper_Secondary_Female")], GED_Leveled$ed_level)
+
+```
 
 ```{r question_2}
 
+(GED_Leveled_disc_lda <- lda(GED_Leveled[,1:2], grouping = GED_Leveled$ed_level))
+(GED_Leveled_disc_qda <- qda(GED_Leveled[,1:2], grouping = GED_Leveled$ed_level))
 
 ```
+
+
+
+```{r question_3}
+
+source("http://www.reuningscherer.net/multivariate/R/discrim.r.txt")
+
+discriminant.significance(GED_Leveled[, c("Birth_Rate", "Completion_Rate_Upper_Secondary_Female")], GED_Leveled$ed_level)
+
+```
+
+``` {r question_4}
+
+
+``` 
 

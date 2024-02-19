@@ -1,0 +1,52 @@
+---
+title: "S&DS363_PSET_2"
+author: "Ethan Mathieu, Tony Ruan, Humrya Karim"
+date: "2024-02-16"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("biotools")
+install.packages("klaR")
+install.packages("ggExtra")
+install.packages("heplots")
+
+library(MASS)
+library(biotools)
+library(klaR)
+library(car)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(ggExtra)
+library(dplyr)
+
+```
+
+``` {r data_set_up}
+
+GED <- read.csv("Global_Education.csv")
+
+GED_Leveled <- GED |>
+   mutate(ed_level = case_when(
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 60 ~ "Low",
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 60 &
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 80 ~ "Medium",
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 80 ~ "High"
+  ))
+
+```
+
+```{r question_1}
+
+boxplot(Birth_Rate ~ ed_level, data=GED_Leveled)
+
+```
+
+
+```{r question_2}
+
+
+```
+
