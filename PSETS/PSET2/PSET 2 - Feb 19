@@ -1,0 +1,118 @@
+``` {r data_set_up}
+
+GED <- read.csv("/Users/Tony/Desktop/class docs/semester 6/S&DS 363/Global_Education.csv")
+
+GED_Leveled <- GED |>
+   mutate(ed_level = case_when(
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 50 ~ "1",
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 50 &
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 80 ~ "2",
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 80 ~ "3"
+  )) |>
+    select(Completion_Rate_Upper_Secondary_Female, Completion_Rate_Upper_Secondary_Male, Birth_Rate, Unemployment_Rate, ed_level)
+```
+
+### Question 1
+
+```{r question_1}
+
+par(mfrow = c(1,2), pty = "s", cex = 0.8)
+boxplot(GED_Leveled$Birth_Rate ~ GED_Leveled$ed_level)
+boxplot(GED_Leveled$Completion_Rate_Upper_Secondary_Female ~ GED_Leveled$ed_level)
+boxplot(GED_Leveled$Completion_Rate_Upper_Secondary_Male ~ GED_Leveled$ed_level)
+boxplot(GED_Leveled$Unemployment_Rate ~ GED_Leveled$ed_level)
+par(mfrow = c(1, 1))
+
+par(mfrow = c(1,3), pty = "s", cex = 0.8)
+cqplot(GED_Leveled[GED_Leveled$ed_level == "1", c("Birth_Rate","Completion_Rate_Upper_Secondary_Female", "Completion_Rate_Upper_Secondary_Male", "Unemployment_Rate")], main = "Low")
+cqplot(GED_Leveled[GED_Leveled$ed_level == "2", c("Birth_Rate","Completion_Rate_Upper_Secondary_Female", "Completion_Rate_Upper_Secondary_Male", "Unemployment_Rate")], main = "Medium")
+cqplot(GED_Leveled[GED_Leveled$ed_level == "3", c("Birth_Rate","Completion_Rate_Upper_Secondary_Female", "Completion_Rate_Upper_Secondary_Male", "Unemployment_Rate")], main = "High")
+par(mfrow = c(1, 1))
+
+boxM(GED_Leveled[,c("Birth_Rate","Completion_Rate_Upper_Secondary_Female", "Completion_Rate_Upper_Secondary_Male", "Unemployment_Rate")], GED_Leveled$ed_level)
+
+plot(GED_Leveled$Birth_Rate, GED_Leveled$Completion_Rate_Upper_Secondary_Female, col = as.numeric(GED_Leveled$ed_level)+1, pch = 19, main = "World Educational Relationships", ylab = "Female Completion Rate", xlab = "Birth Rate")
+
+plot(GED_Leveled[,1:4], col = GED_Leveled$ed_level, pch = 19, cex = 1.2)
+```
+* We examined 4 variables in relation to our global education data levels: Birth Rate, Unemployment Rate, Male educational completion, and Female educational completion. Within each category of discrimination, which we determined to be high, medium, and low rates of literacy, each group appears to have a multivariate normal distribution according to our chi-squared quantile plots. It appears that for countries with different levels of educational attainment broadly have different means from one another for the level of female school completion and male school completion—while unemployment rate and birth rate have more similar means. Examining the scatterplots, as well as performing Box's M-test—which yielded a very low p-value, there definitely appears to be different means between the three levels of low-medium-high However, buy also  different covariances between the three groups. As a result, we intend to utilize quadratic discrimiination analysis to account for these different variances. As a side note, we quickly would like to add that we observe different numbers of observations between each level of literacy—with more countries being classified as low-literacy rates than medium/high. We will account for this in our classification analysis.
+
+### Question 2
+
+```{r question_2}
+
+# Linear Discrimnant Analysis
+(GED_Leveled_disc_lda <- lda(GED_Leveled[,1:4], grouping = GED_Leveled$ed_level))
+(GED_Leveled_disc_qda <- qda(GED_Leveled[,1:4], grouping = GED_Leveled$ed_level))
+
+GED.disc <- lda(GED_Leveled[, -5], grouping = GED_Leveled$ed_level)
+
+(ctraw <- table(GED_Leveled$ed_level, predict(GED.disc)$class))
+
+# total percent correct
+round(sum(diag(prop.table(ctraw))),2)
+
+# LDA cross validated results
+GED.discCV <- lda(GED_Leveled[,-5], grouping = GED_Leveled$ed_level, CV = TRUE)
+(ctCV <- table(GED_Leveled$ed_level, GED.discCV$class))
+round(sum(diag(prop.table(ctCV))),2)
+
+# Quadratic Discriminant Analysis
+GED.qdisc <- qda(GED_Leveled[, -5], grouping = GED_Leveled$ed_level)
+
+(ctrawqed <- table(GED_Leveled$ed_level, predict(GED.qdisc)$class))
+
+# total percent correct
+round(sum(diag(prop.table(ctrawqed))),2)
+
+#Quadratic cross validated results
+GED.discCVqed <- qda(GED_Leveled[,-5], grouping = GED_Leveled$ed_level, CV = TRUE)
+(ctCVQ <- table(GED_Leveled$ed_level, GED.discCVqed$class))
+round(sum(diag(prop.table(ctCVQ))),2)
+
+#Wilks Significance Test
+GEDtest <- qda(GED_Leveled[, -5], grouping = GED_Leveled$ed_level)
+summary(GEDtest)
+GED.manova <- manova(as.matrix(GED_Leveled[, -5]) ~ GED_Leveled$ed_level)
+summary.manova(GED.manova, test = "Wilks")
+summary.aov(GED.manova)
+```
+* We ran both linear discriminant analysis and quadratic discriminant analysis and cross validated analysis in both. Quadratic discriminant analysis was used and rightfully found to be the best as our variables had different covariances. Quadratic discriminant analysis appears to be the most appropriate as it classified 0.98 of our data correctly.
+
+### Question 3 
+
+```{r question_3}
+
+source("http://www.reuningscherer.net/multivariate/R/discrim.r.txt")
+discriminant.significance(GED_Leveled[, c("Birth_Rate", "Completion_Rate_Upper_Secondary_Female")], GED_Leveled$ed_level)
+```
+
+* For 3 out of 4 of our variables the p-values from our Wilks test appear to be significant indicating that for these variables there is evidence of different mean literacy rates as predicted by our variables. The only variable that is not significant is Birth Rate which shows that birth rate is not a useful variable in discriminating for literacy. 
+
+### Question 4 - NOT FINISHED
+
+``` {r question_4}
+source("http://www.reuningscherer.net/multivariate/R/discrim.r.txt")
+discriminant.significance(GED_Leveled[ ,c("Birth_Rate","Completion_Rate_Upper_Secondary_Female", "Completion_Rate_Upper_Secondary_Male", "Unemployment_Rate")], GED_Leveled$ed_level)
+```
+
+### Question 5 - NOT FINISHED
+```{r}
+
+```
+
+### Question 6 - NOT FINISHED
+```{r}
+
+```
+
+
+### Question 7
+* As we utilize Quadratic Discriminant Analysis, scoreplots are not appropriate for our data.
+
+### Question 8 - NOT FINISHED
+
+```{r}
+levels(GED_Leveled$ed_level) <- c("Low", "Medium", "High")
+partimat(GED_Leveled$ed_level ~ Birth_Rate + Completion_Rate_Upper_Secondary_Female + Completion_Rate_Upper_Secondary_Male + Unemployment_Rate, data = GED_Leveled, method = "lda")
+```
