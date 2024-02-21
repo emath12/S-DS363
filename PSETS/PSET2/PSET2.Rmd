@@ -146,7 +146,35 @@ partimat(GED_Leveled$ed_level ~ Completion_Rate_Upper_Secondary_Female + Complet
 ```
 * Our graph here is spanned across two variables: completion rate of upper secondary school for females, and the completion rate of upper secondary school for males. It seems to be reasonably strong, with most of the lower levels of education (The light blue region) falling into one region only around 4 mistakes. The second region (the white region) seems to only have 5-6 mistakes. The third region (the pink region)  seems to only have 4-5 mistakes.
 
+``` {r}
+
+install.packages("class")
+library(class)
+
+```
+
 ### Question 9
 ```{r}
+
+k <- 3
+
+train_features <- GED_Leveled[, c("Birth_Rate","Completion_Rate_Upper_Secondary_Female", "Completion_Rate_Upper_Secondary_Male", "Unemployment_Rate")]
+
+test_features <- GED_Leveled[, c("Birth_Rate","Completion_Rate_Upper_Secondary_Female", "Completion_Rate_Upper_Secondary_Male", "Unemployment_Rate")]
+
+train_labels <- as.factor(GED_Leveled$ed_level)
+
+true_labels <- as.factor(GED_Leveled$ed_level)
+
+predicted_labels <- knn(train = train_features, test = test_features, cl = train_labels, k = k)
+
+GED_Leveled$predicted_labels <- predicted_labels
+
+ggplot(GED_Leveled, aes(x = Completion_Rate_Upper_Secondary_Female, y = Completion_Rate_Upper_Secondary_Male, color = predicted_labels, shape = ed_level)) +
+  geom_point(size = 3) +
+  labs(title = "Ed Level - KNN Classification Results", x = "Completion_Rate_Upper_Secondary_Female", y = "Completion_Rate_Upper_Secondary_Male", color = "Predicted Class", shape = "True Class") +
+  scale_color_manual(values = c("red", "blue", "Orange")) + 
+  scale_shape_manual(values = c(16, 17, 18)) + 
+  theme_minimal()
 
 ```
