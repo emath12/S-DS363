@@ -29,8 +29,7 @@ library(heplots, exclude = "rgl")
 
 
 ``` {r data_set_up}
-
-GED <- read.csv("Global_Education.csv")
+GED <- read.csv("/Users/Tony/Desktop/class docs/semester 6/S&DS 363/Global_Education.csv")
 
 GED_Leveled <- GED |>
    mutate(ed_level = case_when(
@@ -87,24 +86,22 @@ summary.aov(GED.manova)
 ### Question 3 
 
 ```{r question_3}
-
 source("http://www.reuningscherer.net/multivariate/R/discrim.r.txt")
 discriminant.significance(GED_Leveled[, c("Birth_Rate", "Completion_Rate_Upper_Secondary_Female")], GED_Leveled$ed_level)
 ```
 
 * For 3 out of 4 of our variables the p-values from our Wilks test appear to be significant indicating that for these variables there is evidence of different mean literacy rates as predicted by our variables. The only variable that is not significant is Birth Rate which shows that birth rate is not a useful variable in discriminating for literacy. 
 
-### Question 4 - NOT FINISHED
+### Question 4
 
 ``` {r question_4}
 source("http://www.reuningscherer.net/multivariate/R/discrim.r.txt")
-discriminant.significance(GED_Leveled[ ,c("Birth_Rate","Completion_Rate_Upper_Secondary_Female", "Completion_Rate_Upper_Secondary_Male", "Unemployment_Rate")], GED_Leveled$ed_level)
-
+discriminant.significance(GED_Leveled[,c("Completion_Rate_Upper_Secondary_Female", "Completion_Rate_Upper_Secondary_Male")], GED_Leveled$ed_level)
 ```
+* We are detecting how well LDA discriminates between two groups. We initially see that completion rate upper secondary female and completion rate secondary male are significant—whereas birth rate and unemployment rate are not. Function 1 (Female copletion rate) appears to have better discriminating power than Function 2 (Male completion rate)because its Wilks' Lambda is lower (0.1790 compared to 0.9355). This makes sense because a country's efforts to raise female education levels will likely be more holistic for their broader population.
 
-### Question 5 - NOT FINISHED
+### Question 5
 ```{r}
-
 GED.disc <- lda(GED_Leveled[, -5], grouping = GED_Leveled$ed_level)
 
 (ctraw <- table(GED_Leveled$ed_level, predict(GED.disc)$class))
@@ -129,28 +126,27 @@ round(sum(diag(prop.table(ctCV))),2)
 GED.discCVqed <- qda(GED_Leveled[,-5], grouping = GED_Leveled$ed_level, CV = TRUE)
 (ctCVQ <- table(GED_Leveled$ed_level, GED.discCVqed$class))
 round(sum(diag(prop.table(ctCVQ))),2)
-
-
 ```
+* Analyzing the returns, it seems that our predictors were very strong. On regular and leave-on-out tests for both linear and quadratic discriminant analysis, we found strong prediction rates between .95 and .98. QDA, however, had slightly higher rates. This indicates to us that QDA predictors were especially strong, as we expected.
 
-### Question 6 - NOT FINISHED
+### Question 6
 ```{r}
-
 (GED_Leveled_disc_lda)
-
-
-
 ```
-Upper secondary Female completion and upper secondary completion for mens has the most impact, due to having the largest
-abs value.
 
+* Upper secondary Female completion and upper secondary male completion has the most impact on educational level, due to having the largest absolute value. On the other hand, unemployment rate and birth rate did not seem to have strong impacts.
 
 ### Question 7
 * As we utilize Quadratic Discriminant Analysis, scoreplots are not appropriate for our data.
 
-### Question 8 - NOT FINISHED (p sure this is optinal)
-
+### Question 8
 ```{r}
 levels(GED_Leveled$ed_level) <- c("Low", "Medium", "High")
-partimat(GED_Leveled$ed_level ~ Birth_Rate + Completion_Rate_Upper_Secondary_Female + Completion_Rate_Upper_Secondary_Male + Unemployment_Rate, data = GED_Leveled, method = "lda")
+partimat(GED_Leveled$ed_level ~ Completion_Rate_Upper_Secondary_Female + Completion_Rate_Upper_Secondary_Male, data = GED_Leveled, method = "lda")
+```
+* Our graph here is spanned across two variables: completion rate of upper secondary school for females, and the completion rate of upper secondary school for males. It seems to be reasonably strong, with most of the lower levels of education (The light blue region) falling into one region only around 4 mistakes. The second region (the white region) seems to only have 5-6 mistakes. The third region (the pink region)  seems to only have 4-5 mistakes.
+
+### Question 9
+```{r}
+
 ```
