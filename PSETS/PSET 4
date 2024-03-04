@@ -1,0 +1,110 @@
+---
+title: "Ruan_Mathieu_Karim_PSET_4"
+output: html_document
+date: "2024-03-03"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r cars}
+library(MASS)
+library(biotools)
+library(klaR)
+library(car)
+```
+
+```{r}
+eddata <- read.csv("/Users/Tony/Desktop/class docs/semester 6/S&DS 363/Global_Education.csv") (now with continents)
+```
+
+### Question 1
+```{r}
+GED_Leveled <- GED |>
+   mutate(ed_level = case_when(
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 50 ~ "1",
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 50 &
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 80 ~ "2",
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 80 ~ "3"
+  )) |>
+    select(Completion_Rate_Upper_Secondary_Female, Completion_Rate_Upper_Secondary_Male, Birth_Rate, Unemployment_Rate, ed_level)
+
+interaction.plot(eddata$, daniela$Plantation, daniela$ASQRT,
+  lwd = 3, col = c("red", "blue", "black"), trace.label = "Plantation", 
+  xlab = "Species", main = "Interaction Plot for Ht Class A")
+
+interaction.plot(daniela$Treatment, daniela$Plantation, daniela$BSQRT,
+  lwd = 3, col = c("red", "blue", "black"), trace.label = "Plantation", 
+  xlab = "Species", main = "Interaction Plot for Ht Class B")
+
+interaction.plot(daniela$Treatment, daniela$Plantation, daniela$CSQRT,
+  lwd = 3, col = c("red", "blue", "black"), trace.label = "Plantation", 
+  xlab = "Species", main = "Interaction Plot for Ht Class C")
+
+
+```
+
+
+### Question 2
+```{r}
+options(contrasts = c("contr.sum", "contr.poly"))
+
+DanielaMAOV <- lm(cbind(ASQRT, BSQRT, CSQRT) ~ Plantation*Treatment,  
+                data = daniela)
+
+#Multivariate and univariate results
+summary(Anova(DanielaMAOV, type = 3), univariate = T)
+```
+
+### Question 3
+```{r}
+#RUN LINE BELOW TO MAKE SURE CONTRASTS ARE SET CORRECTLY -  this returns things to their default level
+options(contrasts = c("contr.treatment", "contr.poly"))
+
+#Make sure TRTCOMB is a factor
+daniela$TRTCOMB <- as.factor(daniela$TRTCOMB)
+
+#Fit one way MANOVA model
+DanielaMAOV2 <- lm(cbind(ASQRT, BSQRT, CSQRT) ~ TRTCOMB, data = daniela)
+#Fit one way ANOVA model just for ASQRT
+DanielaASQRT <- lm(ASQRT ~ TRTCOMB, data = daniela)
+
+contrasts(daniela$TRTCOMB)
+levels(daniela$TRTCOMB)
+
+#Get multivariate contrast for P vs Q - notice that PCB is the reference level
+linearHypothesis(DanielaMAOV2, "TRTCOMBPHA + TRTCOMBPTA + TRTCOMBPVF + TRTCOMBPVG + TRTCOMBPVK 
+                 - TRTCOMBQCB - TRTCOMBQHA - TRTCOMBQTA - TRTCOMBQVF - TRTCOMBQVG - TRTCOMBQVK= 0") 
+
+#Get univariate contrast for P vs Q for ASQRT
+linearHypothesis(DanielaASQRT, "TRTCOMBPHA + TRTCOMBPTA + TRTCOMBPVF + TRTCOMBPVG + TRTCOMBPVK 
+                 - TRTCOMBQCB - TRTCOMBQHA - TRTCOMBQTA - TRTCOMBQVF - TRTCOMBQVG - TRTCOMBQVK= 0") 
+
+#Get multivariate contrast for P,Q and VF,VK interaction
+linearHypothesis(DanielaMAOV2, "TRTCOMBPVF - TRTCOMBPVK - TRTCOMBQVF + TRTCOMBQVK = 0") 
+
+#Get univariate contrast for P,Q and VF,VK interaction for ASQRT
+linearHypothesis(DanielaASQRT, "TRTCOMBPVF - TRTCOMBPVK - TRTCOMBQVF + TRTCOMBQVK = 0") 
+```
+
+### Question 4
+```{r}
+
+```
+
+### Question 5
+```{r}
+cqplot(sneetch[sneetch$Belly == "Star", c("wing","tail")], main = "Star")
+```
+
+### Question 6
+```{r}
+p.adjust(p = c(.0001, .6563, .0249), method = "bonferroni")
+
+p.adjust(p = c(.0001, .6563, .0249), method = "holm")
+
+p.adjust(p = c(.0001, .6563, .0249), method = "hochberg")
+```
