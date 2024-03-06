@@ -15,52 +15,52 @@ library(MASS)
 library(biotools)
 library(klaR)
 library(car)
+library(dplyr)
 ```
 
 ```{r}
-eddata <- read.csv("/Users/Tony/Desktop/class docs/semester 6/S&DS 363/Global_Education.csv") (now with continents)
+eddata <- read.csv("Global_Education.csv") # (now with continents)
 ```
 
 ### Question 1
 ```{r}
-GED_Leveled <- GED |>
+GED_Leveled <- eddata |>
    mutate(ed_level = case_when(
     ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 50 ~ "1",
     ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 50 &
-    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 80 ~ "2",
-    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 80 ~ "3"
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 60 ~ "2",
+    ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 60 ~ "3"
   )) |>
-    select(Completion_Rate_Upper_Secondary_Female, Completion_Rate_Upper_Secondary_Male, Birth_Rate, Unemployment_Rate, ed_level)
+    select(ed_level, Birth_Rate, Unemployment_Rate, Continent)
 
-interaction.plot(eddata$, daniela$Plantation, daniela$ASQRT,
-  lwd = 3, col = c("red", "blue", "black"), trace.label = "Plantation", 
-  xlab = "Species", main = "Interaction Plot for Ht Class A")
 
-interaction.plot(daniela$Treatment, daniela$Plantation, daniela$BSQRT,
-  lwd = 3, col = c("red", "blue", "black"), trace.label = "Plantation", 
-  xlab = "Species", main = "Interaction Plot for Ht Class B")
 
-interaction.plot(daniela$Treatment, daniela$Plantation, daniela$CSQRT,
-  lwd = 3, col = c("red", "blue", "black"), trace.label = "Plantation", 
-  xlab = "Species", main = "Interaction Plot for Ht Class C")
+interaction.plot(GED_Leveled$ed_level, GED_Leveled$Continent, GED_Leveled$Unemployment_Rate,
+  lwd = 3, col = c("red", "blue", "black", "orange", "green"), trace.label = "Continent", 
+  xlab = "Ed Level", main = "Interaction Plot for Unemployment Rate, Continent, Ed_Level")
+
+interaction.plot(GED_Leveled$ed_level, GED_Leveled$Continent, GED_Leveled$Birth_Rate,
+  lwd = 3, col = c("red", "blue", "black"), trace.label = "Continent ", 
+  xlab = "Ed Level", main = "Interaction Plot for Unemployment Rate, Continent, Birth_Rate")
+
 
 
 ```
-
 
 ### Question 2
 ```{r}
 options(contrasts = c("contr.sum", "contr.poly"))
 
-DanielaMAOV <- lm(cbind(ASQRT, BSQRT, CSQRT) ~ Plantation*Treatment,  
-                data = daniela)
+DanielaMAOV <- lm(cbind(Birth_Rate, Unemployment_Rate) ~ Continent*ed_level,  
+                data = GED_Leveled)
 
 #Multivariate and univariate results
-summary(Anova(DanielaMAOV, type = 3), univariate = T)
+summary(Anova(DanielaMAOV, type = 2), univariate = F)
 ```
 
 ### Question 3
 ```{r}
+
 #RUN LINE BELOW TO MAKE SURE CONTRASTS ARE SET CORRECTLY -  this returns things to their default level
 options(contrasts = c("contr.treatment", "contr.poly"))
 
