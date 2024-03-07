@@ -19,76 +19,57 @@ library(dplyr)
 ```
 
 ```{r}
-eddata <- read.csv("Global_Education.csv") # (now with continents)
+eddata <- read.csv("/Users/Tony/Desktop/class docs/semester 6/S&DS 363/Global_Education.csv")
 ```
 
 ### Question 1
 ```{r}
-GED_Leveled <- eddata |>
+eddata <- eddata |>
    mutate(ed_level = case_when(
     ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 50 ~ "1",
     ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 50 &
     ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 60 ~ "2",
     ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 60 ~ "3"
-  )) |>
-    select(ed_level, Birth_Rate, Unemployment_Rate, Continent)
+  )) |> select(ed_level, Birth_Rate, Unemployment_Rate, Gross_Primary_Education_Enrollment, Continent, Country)
 
-
-
-interaction.plot(GED_Leveled$ed_level, GED_Leveled$Continent, GED_Leveled$Unemployment_Rate,
-  lwd = 3, col = c("red", "blue", "black", "orange", "green"), trace.label = "Continent", 
-  xlab = "Ed Level", main = "Interaction Plot for Unemployment Rate, Continent, Ed_Level")
-
-interaction.plot(GED_Leveled$ed_level, GED_Leveled$Continent, GED_Leveled$Birth_Rate,
-  lwd = 3, col = c("red", "blue", "black"), trace.label = "Continent ", 
-  xlab = "Ed Level", main = "Interaction Plot for Unemployment Rate, Continent, Birth_Rate")
-
-
-
+boxplot(eddata$Unemployment_Rate ~ eddata$Continent, col = "blue", Main = "Unemployment Rate by Continent")
+boxplot(eddata$Birth_Rate ~ eddata$Continent, col = "green", main = "Birth Rate by Continent")
+boxplot(eddata$Gross_Primary_Education_Enrollment ~ eddata$Continent, col = "orange", main = "Primary School Enrollment by Continent")
 ```
+* The box plots that demonstrate unemployment rates and primary school enrollment by continent do not appear to show significant differences in mean differences. However in looking at birth rates there appear to be differences by content. Asia, North America, and South America have similar birth rates whereas Oceania and Africa have much higher means birth rates.
 
 ### Question 2
 ```{r}
 options(contrasts = c("contr.sum", "contr.poly"))
 
-DanielaMAOV <- lm(cbind(Birth_Rate, Unemployment_Rate) ~ Continent*ed_level,  
-                data = GED_Leveled)
+edMAN <- lm(cbind(Birth_Rate, Unemployment_Rate, Gross_Primary_Education_Enrollment) ~ Continent,  
+                data = eddata)
 
 #Multivariate and univariate results
-summary(Anova(DanielaMAOV, type = 2), univariate = F)
+summary(Anova(edMAN, type = 2), univariate = T)
+summary.aov(edMAN)
 ```
+* Our four test statistics indicate significant differences based on group identity. Our Roy's Largest Root being small indicates that there is not a large amount of variability unaccounted for by group membership. We have a high Hotelling's Trace as well, meaning that there is a higher variability between groups than within groups. We have a very small Wilks' Lambda, meaning much of our variability is explained by group (continent). Similarly, our Pillai's Trace is relatively high, indicating a great dael of variability is accounted for by group membership. Our univariate MANOVA also appears to show signifcant differences between continents for each measure (unemplyoment rate, birth rate, and gross primary school enrollment). 
 
 ### Question 3
 ```{r}
-
-#RUN LINE BELOW TO MAKE SURE CONTRASTS ARE SET CORRECTLY -  this returns things to their default level
 options(contrasts = c("contr.treatment", "contr.poly"))
+eddata$Continent <- as.factor(eddata$Continent)
+contrasts(eddata$Continent)
+levels(eddata$Continent)
 
-#Make sure TRTCOMB is a factor
-daniela$TRTCOMB <- as.factor(daniela$TRTCOMB)
+mod.eddata <- lm(eddata$Birth_Rate ~ Continent, data = eddata)
 
-#Fit one way MANOVA model
-DanielaMAOV2 <- lm(cbind(ASQRT, BSQRT, CSQRT) ~ TRTCOMB, data = daniela)
-#Fit one way ANOVA model just for ASQRT
-DanielaASQRT <- lm(ASQRT ~ TRTCOMB, data = daniela)
+#Test Asia vs. Europe
+linearHypothesis(mod.eddata, "ContinentEurope = 0") 
 
-contrasts(daniela$TRTCOMB)
-levels(daniela$TRTCOMB)
+#Test Asia vs. North America
+linearHypothesis(mod.eddata, "ContinentNorth America= 0") 
 
-#Get multivariate contrast for P vs Q - notice that PCB is the reference level
-linearHypothesis(DanielaMAOV2, "TRTCOMBPHA + TRTCOMBPTA + TRTCOMBPVF + TRTCOMBPVG + TRTCOMBPVK 
-                 - TRTCOMBQCB - TRTCOMBQHA - TRTCOMBQTA - TRTCOMBQVF - TRTCOMBQVG - TRTCOMBQVK= 0") 
-
-#Get univariate contrast for P vs Q for ASQRT
-linearHypothesis(DanielaASQRT, "TRTCOMBPHA + TRTCOMBPTA + TRTCOMBPVF + TRTCOMBPVG + TRTCOMBPVK 
-                 - TRTCOMBQCB - TRTCOMBQHA - TRTCOMBQTA - TRTCOMBQVF - TRTCOMBQVG - TRTCOMBQVK= 0") 
-
-#Get multivariate contrast for P,Q and VF,VK interaction
-linearHypothesis(DanielaMAOV2, "TRTCOMBPVF - TRTCOMBPVK - TRTCOMBQVF + TRTCOMBQVK = 0") 
-
-#Get univariate contrast for P,Q and VF,VK interaction for ASQRT
-linearHypothesis(DanielaASQRT, "TRTCOMBPVF - TRTCOMBPVK - TRTCOMBQVF + TRTCOMBQVK = 0") 
+#Test Asia vs. others
+linearHypothesis(mod.eddata, "4*ContinentEurope - ContinentNorth America - ContinentOceania - ContinentSouth America = 0")  
 ```
+* We tested the factor mean birth rate for Asia against Europe and Asia against North America and found that there were significant differences in the birth rate between these continents. Then we tested The mean birth rate of Asia against those of Europe, North America, OCeania, and South Africa and found that there also were significant differences in the mean birth rates.
 
 ### Question 4
 ```{r}
@@ -97,14 +78,16 @@ linearHypothesis(DanielaASQRT, "TRTCOMBPVF - TRTCOMBPVK - TRTCOMBQVF + TRTCOMBQV
 
 ### Question 5
 ```{r}
-cqplot(sneetch[sneetch$Belly == "Star", c("wing","tail")], main = "Star")
+CSQPlot(edMAN$residuals, label = "Residual Plot")
+logedMAN <- as.data.frame(logedMAN[!is.nan(logedMAN)])
+CSQPlot(logedMAN, label = "Residual Plot")
 ```
+* Upon initial observation of our chi-square quantile plot of residuals, we found a great deal of observations that fell outside of our expected range. As such, we transformed our data by taking its natural log. While not perfect, the transformation seems to improve our data's fit greatly, with only 4-5 observations falling outside of the appropriate range. 
 
 ### Question 6
 ```{r}
-p.adjust(p = c(.0001, .6563, .0249), method = "bonferroni")
-
-p.adjust(p = c(.0001, .6563, .0249), method = "holm")
-
-p.adjust(p = c(.0001, .6563, .0249), method = "hochberg")
+p.adjust(p = c(2.2e-16, 0.002772, 0.01084), method = "bonferroni")
+p.adjust(p = c(2.2e-16, 0.002772, 0.01084), method = "holm")
+p.adjust(p = c(2.2e-16, 0.002772, 0.01084), method = "hochberg")
 ```
+* Using three methods discussed in class, our p-values seem to be nominally improved—most significantly with the Holm method. After adjustment, the smallest adjusted p-value is 2.2 x 10^-16 which remains the most significant across all three correction methods. The next smallest adjusted p-value varies depending on the correction method used. However, in this case, the second smallest adjusted p-value is consistent across Bonferroni and Hochberg corrections, which is 0.008316 Therefore, based on these results, the most significant p-values are 2.2 x 10^-16 and .008316.
