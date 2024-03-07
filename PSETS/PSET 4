@@ -19,18 +19,18 @@ library(dplyr)
 ```
 
 ```{r}
-eddata <- read.csv("/Users/Tony/Desktop/class docs/semester 6/S&DS 363/Global_Education.csv")
+eddata1 <- read.csv("Global_Education.csv")
 ```
 
 ### Question 1
 ```{r}
-eddata <- eddata |>
+eddata <- eddata1 |>
    mutate(ed_level = case_when(
     ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 50 ~ "1",
     ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 50 &
     ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) < 60 ~ "2",
     ((Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2) >= 60 ~ "3"
-  )) |> select(ed_level, Birth_Rate, Unemployment_Rate, Gross_Primary_Education_Enrollment, Continent, Country)
+  )) |> select(ed_level, Birth_Rate, Unemployment_Rate, Gross_Primary_Education_Enrollment, Completion_Rate_Lower_Secondary_Male, Gross_Tertiary_Education_Enrollment, Continent, Countries.and.areas)
 
 boxplot(eddata$Unemployment_Rate ~ eddata$Continent, col = "blue", Main = "Unemployment Rate by Continent")
 boxplot(eddata$Birth_Rate ~ eddata$Continent, col = "green", main = "Birth Rate by Continent")
@@ -74,7 +74,17 @@ linearHypothesis(mod.eddata, "4*ContinentEurope - ContinentNorth America - Conti
 ### Question 4
 ```{r}
 
+plot(log(eddata$Gross_Tertiary_Education_Enrollment), eddata$Birth_Rate, xlab = "Gross_Tertiary_Education_Enrollment", ylab = "Birth Rate", main = "Scatter Plot of Birth Rate vs. Gross_Tertiary_Education_Enrollment")
+plot(log(eddata$Gross_Tertiary_Education_Enrollment), eddata$Unemployment_Rate, xlab = "Gross_Tertiary_Education_Enrollment", ylab = "Unemployment Rate", main = "Scatter Plot of Unemployment Rate vs. Income Per Capita")
+plot(log(eddata$Gross_Tertiary_Education_Enrollment), eddata$Gross_Primary_Education_Enrollment, xlab = "Gross_Tertiary_Education_Enrollment", ylab = "Primary School Enrollment", main = "Scatter Plot of Primary School Enrollment vs. Income Per Capita")
+
+edMAN_with_tert <- lm(cbind(Birth_Rate, Unemployment_Rate, Gross_Primary_Education_Enrollment) ~ Continent + Gross_Tertiary_Education_Enrollment, data = eddata)
+
+summary(Anova(edMAN_with_tert, type = 2), univariate = TRUE)
+summary.aov(edMAN_with_tert)
 ```
+*Gross Primary Education is closely correlated with the Gross Teritary enrollement. Otherwise,
+the results more or less hold from before
 
 ### Question 5
 ```{r}
