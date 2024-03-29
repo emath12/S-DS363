@@ -1,0 +1,32 @@
+---
+title: "Cluster Analysis"
+author: "JDRS"
+date: "Multivariate"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+
+```
+
+## - PSET 5
+# Ruan, Mathieu, Karim
+
+```{r}
+eddata <- read.csv("/Users/Tony/Desktop/class docs/semester 6/S&DS 363/Global_Education.csv")
+```
+
+## Question 1
+```{r}
+eddatasample <- filter(na.omit(eddata), Continent == "Asia" | Continent == "Europe") 
+eddatasample <- eddatasample[, -c(1,2,3, 4)]
+
+rows = c("Completion_Rate_Primary_Male", "Completion_Rate_Primary_Female", "Completion_Rate_Lower_Secondary_Male" , "Completion_Rate_Lower_Secondary_Female",  "Completion_Rate_Upper_Secondary_Male" , "Completion_Rate_Upper_Secondary_Female" , "Grade_2_3_Proficiency_Reading" , "Grade_2_3_Proficiency_Math" , "Primary_End_Proficiency_Reading" , "Primary_End_Proficiency_Math" , "Youth_15_24_Literacy_Rate_Male" , "Youth_15_24_Literacy_Rate_Female" , "Birth_Rate" , "Gross_Primary_Education_Enrollment" , "Gross_Tertiary_Education_Enrollment" , "Unemployment_Rate")
+
+eddatasample_parsed <- select(eddatasample, all_of(rows))
+
+eddata.dist <- dist(eddatasample[, -2], method = "euclidean")
+eddata.clust <- hclust(eddata.dist)
+```
