@@ -72,3 +72,17 @@ plot(k_values, ss, type = "b", pch = 19, col = "blue",
      main = "Sum of Squares vs. Number of Clusters")
 
 ```
+
+## Question 5
+``` {R}
+pca_result <- prcomp(eddatasample_norm, scale. = TRUE)
+
+pcs <- pca_result$x
+
+df_pca <- data.frame(PC1 = pcs[,1], PC2 = pcs[,2])
+
+ggplot(df_pca, aes(x = PC1, y = PC2)) +
+  geom_point() +
+  labs(title = "PCA Plot", x = "PC1", y = "PC2")
+
+```
