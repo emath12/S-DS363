@@ -12,10 +12,10 @@ library(dplyr)
 ```
 
 ## - PSET 5
-# Ruan, Mathieu, Karim
+# Ruan, Mathieu, Karim - World Educational Data
 
 ```{r}
-eddata <- read.csv("Global_Education.csv")
+eddata <- read.csv("/Users/Tony/Desktop/class docs/semester 6/S&DS 363/Global_Education.csv")
 ```
 
 ## Question 1
@@ -30,35 +30,42 @@ eddata.clust_euc <- dist(eddatasample_norm[, -2], method = "euclidean")
 eddata.clust_man <- dist(eddatasample_norm[, -2], method = "manhattan")
 
 ```
+* We think using manhattan distance is appropriate for our data given the various outliers in unemployment rate, birth rate, and education enrollment across both primary and tertiary levels. Therefore, euclidean distance would not be a good distance metric because it is very sensitive to outliers, which manhattan is not. It is important to note that we also scaled all of our variables—making our comparisons more appropriate for hierarchical clustering. Otherwise, we did not see any reason to transform our data. We explore further measurements in the following questions.
 
 ## Question 2
 ``` {r}
+
+eddata.hclust_euc_single <- hclust(eddata.clust_euc , method = "single")
+eddata.hclust_euc_ward <- hclust(eddata.clust_euc , method = "ward.D")
+eddata.hclust_euc_complete <- hclust(eddata.clust_euc , method = "complete")
 
 eddata.hclust_man_single <- hclust(eddata.clust_man , method = "single")
 eddata.hclust_man_ward <- hclust(eddata.clust_man , method = "ward.D")
 eddata.hclust_man_complete <- hclust(eddata.clust_man , method = "complete")
 
+
+plot(eddata.hclust_euc_single, cex = 0.6, xlab = "", ylab = "Distance", main = "Clustering of Countries", labels = eddatasample$Countries.and.areas)
+plot(eddata.hclust_euc_ward, cex = 0.6, xlab = "", ylab = "Distance", main = "Clustering of Countries", labels = eddatasample$Countries.and.areas)
+plot(eddata.hclust_euc_complete, cex = 0.6, xlab = "", ylab = "Distance", main = "Clustering of Countries", labels = eddatasample$Countries.and.areas)
+
 plot(eddata.hclust_man_single, cex = 0.6, xlab = "", ylab = "Distance", main = "Clustering of Countries", labels = eddatasample$Countries.and.areas)
-
 plot(eddata.hclust_man_ward, cex = 0.6, xlab = "", ylab = "Distance", main = "Clustering of Countries", labels = eddatasample$Countries.and.areas)
-
 plot(eddata.hclust_man_complete, cex = 0.6, xlab = "", ylab = "Distance", main = "Clustering of Countries", labels = eddatasample$Countries.and.areas)
-
-
 ```
-## Question 3
+* We provide six clusterings (which is above and beyond what was expected). We utilized both euclidean and Manhattan distance metrics, and then used complete, single, and ward's agglomeration methods for each. There are a number of significant differences between our various approaches. Within those that utilized euclidean distance metrics, our complete approach found around 10-11 clusters, with Ward being the most difficult to interpret. Within those that we utilized the Manhattan distance metric, and tentatively observed around 13 clusters, which was most difficult to observe on our single agglomeration method. Unlike euclidean distance, Ward's was very easy to read using Manhattan distance metric, similarly for our complete agglomeration method as well. Overall, we find that the Manhattan distance was most appropriate for our data, which we predicted in our last question as well because of its ability to account for outliers—which were heavily prevalent in our data. Given the size of our data set, Ward's was particularly appropriate because it appeared to produce clusters of similar sizes and compactness—despite extreme variance within our data, which makes sense because Ward's minimizes variances within clusters and maximizes variance between clusters.
 
+## Question 3
 ``` {r}
 source("http://reuningscherer.net/multivariate/R/HClusEval3.R.txt")
 #Call the function
 hclus_eval(eddatasample_norm, dist_m = 'manhattan', clus_m = 'complete', plot_op = T, print_num = 15)
-
 ```
+* On our RMSSTD/SPRSQ/RSQ plot, the first thing we observe is two elbows for SPRRSQ at 2/3 and 10/11. This makes sense given that we are observing data on two continents, as well as observing around 11 clusters in our previous question. For RMSSTD we observe two local minima, the first being at around 6 and the other being at 11. This test statistic is predicting our clusters, with 11 making the most sense given that it is in line with what we have observed thus far. Our R^2 statistic finds that there are two large clusters—likely to be continents—and if we were to be more specific we can break them into the 11 clusters. 
 
 ## Question 4
 ``` {r}
 
-k_values <- 2:6  # Range of k values to try
+k_values <- 1:15  # Range of k values to try
 ss <- numeric(length(k_values))  # Initialize vector to store sum of squares
 
 for (i in 1:length(k_values)) {
@@ -70,19 +77,24 @@ for (i in 1:length(k_values)) {
 plot(k_values, ss, type = "b", pch = 19, col = "blue",
      xlab = "Number of Clusters (k)", ylab = "Sum of Squares",
      main = "Sum of Squares vs. Number of Clusters")
-
 ```
+* In our sum os squares v. k plot, we observe a change after both 1 and 4. These would make sense, and would somewhat align with our results in question 3—which found 2 clusters to be appropriate. We also observe an irregularity around 11, which would also suggest similar results to what we found in question 3. Based on this, we would once again tentatively propose that two groups exist—largely based on geography/continent.
 
-## Question 5
+## Questions 5 & 6
 ``` {R}
+library(ggplot2)
 pca_result <- prcomp(eddatasample_norm, scale. = TRUE)
 
 pcs <- pca_result$x
 
 df_pca <- data.frame(PC1 = pcs[,1], PC2 = pcs[,2])
 
-ggplot(df_pca, aes(x = PC1, y = PC2)) +
+ggplot(df_pca, aes(x = PC1, y = PC2, color = eddatasample$Continent)) +
   geom_point() +
   labs(title = "PCA Plot", x = "PC1", y = "PC2")
-
 ```
+* Our principal components analysis provides some mixed results. We see two groups based on continent (Asia/Europe) to be largely spread out across our main two principal components. We do, however, unfortunately see some overlap within the groups. This tarnishes our original claim that it was largely determined by continent. However, we did also note that it would likely be more helpful (in our cluster analysis and otherwise) to analyze our data through observing around 11 groups. Unfortunately, while our PCA plot does not provide information on how we would define these 11 groups, it is sufficient to show that using 2 groups is likely not the most appropriate method.
+
+
+## Question 7
+* As we have extensively noted in previous questions, we have decided on a final two groups/clusters—countries within Asia and countries within Europe. This does make sense, given the long histories of intra-continental development. Particularly in Europe, following World War II, there was a large surge in development in western Europe, with the U.S.' contribution being known as the Marshall Plan, as well as intensive globalization accelerating development—which would obviously raise the standard for education within the continental sphere of Europe. While we see less variance in Europe, Asia is more sporadic in terms of intra-cluster distance. This also reflects historical trends, with larger gaps in socioeconomic development over the past century given more heterogeneous political conditions.
