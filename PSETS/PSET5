@@ -36,10 +36,15 @@ eddata.clust_man <- dist(eddatasample_norm[, -2], method = "manhattan")
 
 eddata.hclust_man_single <- hclust(eddata.clust_man , method = "single")
 eddata.hclust_man_ward <- hclust(eddata.clust_man , method = "ward.D")
+eddata.hclust_man_complete <- hclust(eddata.clust_man , method = "complete")
 
 plot(eddata.hclust_man_single, cex = 0.6, xlab = "", ylab = "Distance", main = "Clustering of Countries", labels = eddatasample$Countries.and.areas)
 
 plot(eddata.hclust_man_ward, cex = 0.6, xlab = "", ylab = "Distance", main = "Clustering of Countries", labels = eddatasample$Countries.and.areas)
+
+plot(eddata.hclust_man_complete, cex = 0.6, xlab = "", ylab = "Distance", main = "Clustering of Countries", labels = eddatasample$Countries.and.areas)
+
+
 ```
 ## Question 3
 
