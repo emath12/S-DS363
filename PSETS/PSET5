@@ -54,3 +54,21 @@ source("http://reuningscherer.net/multivariate/R/HClusEval3.R.txt")
 hclus_eval(eddatasample_norm, dist_m = 'manhattan', clus_m = 'complete', plot_op = T, print_num = 15)
 
 ```
+
+## Question 4
+``` {r}
+
+k_values <- 2:6  # Range of k values to try
+ss <- numeric(length(k_values))  # Initialize vector to store sum of squares
+
+for (i in 1:length(k_values)) {
+  k <- k_values[i]
+  km <- kmeans(eddatasample_norm, centers = k)
+  ss[i] <- km$tot.withinss  
+}
+
+plot(k_values, ss, type = "b", pch = 19, col = "blue",
+     xlab = "Number of Clusters (k)", ylab = "Sum of Squares",
+     main = "Sum of Squares vs. Number of Clusters")
+
+```
