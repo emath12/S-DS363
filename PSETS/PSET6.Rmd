@@ -1,0 +1,195 @@
+---
+title: "PSET6"
+author: "Ethan Mathieu"
+date: "2024-04-07"
+output: html_document
+---
+
+```{r}
+
+install.packages("vegan")
+install.packages("vegan3d")
+
+```
+
+```{r}
+
+library(dplyr)
+library(vegan)
+library(vegan3d)
+library(mgcv)
+library(MASS)
+library(rgl)
+library(ggplot2)
+library(tidyverse)
+
+```
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+eddata <- read.csv("Global_Education.csv")
+
+```
+
+## Question 1
+
+``` {r}
+
+eddata_leveled <- eddata |>
+  mutate(literacy_level = case_when(
+    (Youth_15_24_Literacy_Rate_Male + Youth_15_24_Literacy_Rate_Female) / 2 >= 70 ~ "High Literacy",
+    (Youth_15_24_Literacy_Rate_Male + Youth_15_24_Literacy_Rate_Female) >= 10 ~ "Medium Literacy",
+    TRUE ~ "Low Literacy"
+  )) |>
+  mutate(unemployment_level = case_when(
+    Unemployment_Rate >= 8 ~ "High Unemp",
+    Unemployment_Rate >= 4 ~ "Medium Unemp",
+    TRUE ~ "Low Unemp"
+  )) |> 
+  mutate(birth_level = case_when(
+    Birth_Rate >= 40 ~ "High BL",
+    Birth_Rate >= 20 ~ "Medium BL",
+    TRUE ~ "Low BL"
+  )) |>
+  mutate(education_level = case_when(
+    (Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2 >= 70 ~ "High EL",
+    (Completion_Rate_Upper_Secondary_Male + Completion_Rate_Upper_Secondary_Female) / 2 >= 40 ~ "Medium EL",
+    TRUE ~ "Low EL"
+  )) 
+
+eddata_selected <- eddata_leveled |>
+  mutate(literacy_unemployment_level = paste(literacy_level, unemployment_level, sep = "_")) |>
+  dplyr::select(Countries.and.areas, literacy_unemployment_level, birth_level, education_level, Gross_Tertiary_Education_Enrollment)
+
+count_data <- eddata_selected %>%
+  group_by(literacy_unemployment_level, birth_level, education_level) %>%
+  summarise(count = n(), .groups = "drop") |>
+  ungroup()
+
+pivot_data <- count_data %>%
+  pivot_wider(names_from = c(birth_level, education_level), values_from = count, values_fill = 0)
+
+pivot_data <- pivot_data %>%
+  mutate(literacy_unemployment_level = factor(literacy_unemployment_level, levels = c("High Literacy_High Unemp", "High Literacy_Medium Unemp", "High Literacy_Low Unemp", "Medium Literacy_High Unemp", "Medium Literacy_Medium Unemp", "Medium Literacy_Low Unemp", "Low Literacy_High Unemp", "Low Literacy_Medium Unemp", "Low Literacy_Low Unemp"))) %>%
+  arrange(literacy_unemployment_level)
+
+
+env <- eddata_leveled |>
+  mutate(literacy_unemployment_level = paste(literacy_level, unemployment_level, sep = "_")) |>
+  group_by(literacy_unemployment_level, birth_level, education_level) |>
+  summarise(avg = mean(Gross_Tertiary_Education_Enrollment)) |>
+  group_by(literacy_unemployment_level) |>
+  summarise(avg = mean(avg))
+
+  
+
+  
+  
+  
+```
+
+
+## Question 1 & 2 
+
+``` {r}
+
+eddata_cca <- cca(pivot_data[, -1])
+
+```
+
+``` {r}
+
+eddata_cca
+plot(eddata_cca, type = "n" , xlim = c(-.5, .5))
+text(eddata_cca, dis = "wa", labels =  c("High Literacy_High Unemp", "High Literacy_Medium Unemp", "High Literacy_Low Unemp", "Medium Literacy_High Unemp", "Medium Literacy_Medium Unemp", "Medium Literacy_Low Unemp", "Low Literacy_High Unemp", "Low Literacy_Medium Unemp", "Low Literacy_Low Unemp"))
+points(eddata_cca, pch = 21, col = "red", bg = "yellow", cex = 1.2)
+text(eddata_cca, "species", col = "blue", cex = 0.8)
+
+```
+
+## Question 3 & 4
+No
+
+
+## Question 5
+``` {r}
+
+pivot_data <- pivot_data %>%
+  mutate_all(as.numeric)  
+num_dimensions <- 5  
+
+results <- matrix(NA, nrow = 21, ncol = num_dimensions)
+
+for (j in 1:num_dimensions) {
+  for (i in 1:8) {
+    temp <- pivot_data[sample(nrow(pivot_data)), 1] 
+    for (k in 1:8) { 
+      temp <- cbind(temp, pivot_data[sample(nrow(pivot_data)), k]) 
+    }
+    mds_result <- metaMDS(temp, k = j, distance = "euclidean")
+    results[i, j] <- mds_result$stress
+  }
+  mds_result <- metaMDS(pivot_data, k = j, distance = "euclidean")
+  results[21, j] <- mds_result$stress
+}
+
+
+plot(c(1:num_dimensions), results[21, ], type = "b", col = "blue", lwd = 3, 
+     ylim = c(0, max(results, na.rm = TRUE)), xlab = "Dimensions", ylab = "Stress", pch = 19, 
+     main = "MDS Stress and Permutation Results")
+
+mins <- apply(results[1:20, ], 2, min, na.rm = TRUE)
+maxs <- apply(results[1:20, ], 2, max, na.rm = TRUE)
+meds <- apply(results[1:20, ], 2, median, na.rm = TRUE)
+
+for (i in 1:num_dimensions) {
+  points(rep(i, 3), c(mins[i], meds[i], maxs[i]), type = "b", col = "red", lwd = 3, pch = 19)
+}
+
+legend("topright", legend = c("MDS Solution", "20 Permutations"), lwd = 3, col = c("blue", "red"))
+
+
+
+
+
+```
+
+## Question 6
+
+## Question 7
+``` {r}
+
+plot(mds_2d$points, type = "n", main = "MDS Plot (2 Dimensions)")  # Create empty plot
+text(mds_2d$points, labels = rownames(mds_2d$points), col = "blue", cex = 0.8)  # Add labels to points
+#more refined plot
+mds_2d$points
+fig <- ordiplot(mds_2d, type = "none", cex = 1.1)
+text(fig, "species", col = "red", cex = 1.1)
+text(fig, "sites", col = "blue", cex = 0.8)
+
+```
+
+## Question 8
+``` {r}
+
+fig <- ordiplot(mds_2d, type = "none", cex = 1.1)
+fit <- envfit(mds_2d, env, permutations = 1000)
+plot(fit, col = "red", lwd = 3)
+fit
+
+
+
+
+```
+
+## Question 9
+
+``` {r}
+
+
+
+```
+
+## Question 10
