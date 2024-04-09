@@ -2,7 +2,9 @@
 title: "PSET6"
 author: "Ethan Mathieu"
 date: "2024-04-07"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r}
@@ -30,6 +32,7 @@ library(tidyverse)
 knitr::opts_chunk$set(echo = TRUE)
 
 eddata <- read.csv("Global_Education.csv")
+
 
 ```
 
@@ -61,7 +64,7 @@ eddata_leveled <- eddata |>
 
 eddata_selected <- eddata_leveled |>
   mutate(literacy_unemployment_level = paste(literacy_level, unemployment_level, sep = "_")) |>
-  dplyr::select(Countries.and.areas, literacy_unemployment_level, birth_level, education_level, Gross_Tertiary_Education_Enrollment)
+  dplyr::select("Countries and areas", literacy_unemployment_level, birth_level, education_level, Gross_Tertiary_Education_Enrollment)
 
 count_data <- eddata_selected |>
   group_by(literacy_unemployment_level, birth_level, education_level) |>
@@ -75,6 +78,11 @@ pivot_data <- pivot_data |>
   mutate(literacy_unemployment_level = factor(literacy_unemployment_level, levels = c("HL_HU", "HL_MU", "HL_LU", "ML_HU", "ML_MU", "ML_LU", "LL_HU", "LL_MU", "LL_LU"))) |>
   arrange(literacy_unemployment_level)
 
+#Correspondence Analysis and Plot 
+
+eddata_cca <- cca(pivot_data[, -1])
+
+eddata_cca
 
 ```
 
@@ -83,23 +91,22 @@ contingency table. This data contains information, by country, about various
 societal variables. These are rates. For instance, Completion_Rate_Upper_Secondary_Female
 variable indicates what percent of women complete secondary school. To create a contingency table,
 we fixed categories to a few key rates. If the rate exceeded a certain threshold, we noted it
-as "high", "medium" or "low" respectively. Theis allows us to count the number of nations that
-fit into certain categories, priming our creation of a contigency table.
+as "high", "medium" or "low" respectively. This allows us to count the number of nations that
+fit into certain categories, priming our creation of a contingency table.
 
-To create the actual contigency table, we isolated four of these cateogized variables: Unemployment Level,
+To create the actual contingency table, we isolated four of these categorized variables: Unemployment Level,
 Education Level, Birth Level and and Literacy Level. We combined Literacy Level and Unemployment 
 Level into a compound category as well as Education level and Birth Level. We counted
-how many nations feel into each combination fo these compound categories. 
+how many nations fall into each combination of these compound categories. 
 
 ex: The number of nations that were High Literacy Level + High Unemployment Level as well as High Education Level + High Birth Level
 
-This is condified as HL_HU + HEL_HBL, so that it can appear well on a plot.
+This is codified as HL_HU + HEL_HBL, so that it can appear well on a plot.
 
 ## Question 2
 
 ``` {r}
 
-eddata_cca <- cca(pivot_data[, -1])
 eddata_cca
 
 ```
@@ -110,7 +117,7 @@ at the plot.
 
 ``` {r}
 
-plot(eddata_cca, type = "n" , xlim = c(-.5, .5))
+plot(eddata_cca, type = "n" , xlim = c(-2, 2))
 text(eddata_cca, dis = "wa", labels =  c("HL_HU", "HL_MU", "HL_LU", "ML_HU", "ML_MU", "ML_LU", "LL_HU", "LL_MU", "LL_LU"))
 points(eddata_cca, pch = 21, col = "red", bg = "yellow", cex = 1.2)
 text(eddata_cca, "species", col = "blue", cex = 0.8)
@@ -119,16 +126,13 @@ text(eddata_cca, "species", col = "blue", cex = 0.8)
 
 
 ## Question 3 & 4
-There is no evidence of data snaking in higher dimensional spaces. This makes sense
-because there is no natural "handoff" that occurs in that data, where one distribution
-bleeds into another. Rather, the data clusters around certain logical associations.
+There is no evidence of data snaking in higher dimensional spaces. This makes sense because there is no natural "handoff" that occurs in that data, where one distribution bleeds into another. Rather, the data clusters around some logical and some surprising associations.
 
-For instance, High Literacy Level and Low Unemployment has strong correspondence with
-Medium Birth Level and High Education Level, which makes sense. There are certain surprising conclusions, like the fact that High Education Level and Low Birth Level has a strong correspondence with Low Literacy Level and High Unemplyoment. However, there are some combinations that seem to have little correspondence with anything, such as medium literacy level and high unemployment level. The straight inverse combinations 
-(High-X and Low-Y) seem to have the most correspondence power.
+For instance, High Literacy Level and Low Unemployment has strong correspondence with Medium Birth Level and High Education Level, which could potentially be associated with countries of higher development. There are certainly also surprising conclusions, like the fact that High Education Level and Low Birth Level has a strong correspondence with Low Literacy Level and High Unemployment. This relationship also appears to be stronger as it is further away from the origin of the plot. However, there are some combinations that seem to have little correspondence with anything, such as medium literacy level and high unemployment level, which are in the fourth quadrant. The straight inverse combinations (High-X and Low-Y) seem to have the most correspondence power.
 
 ## Question 5
 ``` {r}
+set.seed(124)
 
 pivot_data <- pivot_data %>%
   mutate_all(as.numeric)  
@@ -149,19 +153,13 @@ for (j in 1:num_dimensions) {
   results[21, j] <- mds_result$stress
 }
 
-
-
-
-
-
+mean(results$V2)
 
 ```
 
-Here we run multidimensional scaling with several different dimesnions. We do one 
-original MDS, and 20 other permuations with shuffled data. The stress value
-for each dimension is calculated and stored. We plot these results, showing the original 
-run agaisnt each of the permutations. Teaching Assistants stated that the scree
-plot contained in the next question is sufficient plotting for this question.
+Here we run multidimensional scaling with several different dimensions. We do one original MDS, and 20 other permutations with shuffled data. The stress value
+for each dimension is calculated and stored. We plot these results, showing the original run against each of the permutations. Teaching Assistants stated that the screeplot contained in the next question is sufficient plotting for this question.
+
 
 ## Question 6
 
@@ -183,12 +181,9 @@ legend("topright", legend = c("MDS Solution", "20 Permutations"), lwd = 3, col =
 ```
 
 Knowing that the blue line is the actual line measured stress while the red
-dots are what we would expect to happen just by chance, we not that the line
-begins to smooth out around dimension 2. In other words, the stress value, or the
-difference between the high dimension points and the low dimesnional approximation, begins 
-to flatten out at around dimension 2. This means that 2 dimensions is a pretty good
-projection of the original high dimension data; projecting on more dimensions is
-seemingly unncessary. 
+dots are what we would expect to happen just by chance, we note that the line
+begins to smooth out around dimension 2, reaching a stress values below 0.1. In other words, the stress value, or the difference between the high dimension points and the low dimension approximation, begins to flatten out at around dimension 2, as dimensions one had a much higher stress value. This means that 2 dimensions is a pretty reliable projection of the original high dimension data; projecting on more dimensions is seemingly unnecessary, as in two dimensions the original dissimilarities of the data points is still well represented.
+
 
 ## Question 7
 ``` {r}
@@ -213,7 +208,7 @@ env <- eddata_leveled |>
 env
 ```
 
-Here, we create a continious variable for each of the categories we described earlier. It's the average
+Here, we create a continuous variable for each of the categories we described earlier. It's the average
 college completion rate for each of the categorical combinations. We have included the head of the
 data, so that is more obvious what is happening. Also, to make the stress calculations work
 we needed to convert the row categories into numbers. Here are the mappings:
@@ -233,8 +228,8 @@ fit
 ```
 
 Here we see college_completion_avg point generally in the direction of High Literacy Rate combinations.
-Note: It was incredibly difficult wrangling the data to include a continious variable, as our 
-data is not very well suited for it due to it not being an originally contingent dataset.
+Note: It was incredibly difficult wrangling the data to include a continuous variable, as our 
+data is not very well suited for it due to it not being an originally contingent data set.
 
 ## Question 9
 
@@ -245,5 +240,7 @@ data is not very well suited for it due to it not being an originally contingent
 ```
 
 ## Question 10
+ *write a whole thing about how our data is not good for this* 
 
 
+Overall I think our 2-dimensional MDS plot was the best way (question 7) to visualize how the categories we constructed relate to each other and group together. With the original CA plot it was difficult o recognize meaningful relationships between the various groupings. For instance we see a relationship between High Literacy + High Unemployment with both Medium Birth Rate and Medium Education Level and Low Birth Rate and High Education Level which was not as clearly reflected in our original plot from questions 1-2. These categories are also closely related to Medium Literacy + High Unemployment, which makes sense as this is similar classification category, so countries with such ratings would be more similar. This also implies that across countries with high levels of unemployment are a more related across average and high rates of literacy, whereas low literacy tends to much more dissimilar as evidenced by the "4" category (high unemployment, low literacy) being much further away from the 1 and 7 category. We also see a relationship with 4, 5, and 6 all representing groups with differing amounts of unemployment but all with low literacy all towards the right side of the graph indicating the importance of literacy in recognizing variance. 
