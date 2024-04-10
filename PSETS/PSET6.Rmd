@@ -240,7 +240,9 @@ data is not very well suited for it due to it not being an originally contingent
 ```
 
 ## Question 10
- *write a whole thing about how our data is not good for this* 
-
 
 Overall I think our 2-dimensional MDS plot was the best way (question 7) to visualize how the categories we constructed relate to each other and group together. With the original CA plot it was difficult o recognize meaningful relationships between the various groupings. For instance we see a relationship between High Literacy + High Unemployment with both Medium Birth Rate and Medium Education Level and Low Birth Rate and High Education Level which was not as clearly reflected in our original plot from questions 1-2. These categories are also closely related to Medium Literacy + High Unemployment, which makes sense as this is similar classification category, so countries with such ratings would be more similar. This also implies that across countries with high levels of unemployment are a more related across average and high rates of literacy, whereas low literacy tends to much more dissimilar as evidenced by the "4" category (high unemployment, low literacy) being much further away from the 1 and 7 category. We also see a relationship with 4, 5, and 6 all representing groups with differing amounts of unemployment but all with low literacy all towards the right side of the graph indicating the importance of literacy in recognizing variance. 
+
+The canonical correspondence plot demonstrates that the groups that most correspond with the college completion category are groups with high literacy, regardless of their unemployment level.
+
+Overall we reached the conclusion that our data is all ill-suited to do correspondence analysis as it is not in counts and we ourselves had to manipulate the data in order to fit it the proper analysis models. Which may lead to some dubious results and conclusions. 
