@@ -1,16 +1,17 @@
 ---
 title: "PSET6"
-author: "Ethan Mathieu"
+author: "Mathieu, Karim, Ruaan"
 date: "2024-04-07"
 output:
-  word_document: default
+  pdf_document: default
   html_document: default
+  word_document: default
 ---
 
 ```{r}
 
-install.packages("vegan")
-install.packages("vegan3d")
+install.packages("vegan" , repos = "http://cran.us.r-project.org")
+install.packages("vegan3d", repos = "http://cran.us.r-project.org")
 
 ```
 
@@ -43,7 +44,7 @@ eddata <- read.csv("Global_Education.csv")
 eddata_leveled <- eddata |>
   mutate(literacy_level = case_when(
     (Youth_15_24_Literacy_Rate_Male + Youth_15_24_Literacy_Rate_Female) / 2 >= 70 ~ "HL",
-    (Youth_15_24_Literacy_Rate_Male + Youth_15_24_Literacy_Rate_Female) >= 10 ~ "ML",
+    (Youth_15_24_Literacy_Rate_Male + Youth_15_24_Literacy_Rate_Female) / 2  >= 10 ~ "ML",
     TRUE ~ "LL"
   )) |>
   mutate(unemployment_level = case_when(
@@ -64,7 +65,7 @@ eddata_leveled <- eddata |>
 
 eddata_selected <- eddata_leveled |>
   mutate(literacy_unemployment_level = paste(literacy_level, unemployment_level, sep = "_")) |>
-  dplyr::select("Countries and areas", literacy_unemployment_level, birth_level, education_level, Gross_Tertiary_Education_Enrollment)
+  dplyr::select(Countries.and.areas, literacy_unemployment_level, birth_level, education_level, Gross_Tertiary_Education_Enrollment)
 
 count_data <- eddata_selected |>
   group_by(literacy_unemployment_level, birth_level, education_level) |>
@@ -77,8 +78,6 @@ pivot_data <- count_data |>
 pivot_data <- pivot_data |>
   mutate(literacy_unemployment_level = factor(literacy_unemployment_level, levels = c("HL_HU", "HL_MU", "HL_LU", "ML_HU", "ML_MU", "ML_LU", "LL_HU", "LL_MU", "LL_LU"))) |>
   arrange(literacy_unemployment_level)
-
-#Correspondence Analysis and Plot 
 
 eddata_cca <- cca(pivot_data[, -1])
 
@@ -131,7 +130,7 @@ There is no evidence of data snaking in higher dimensional spaces. This makes se
 For instance, High Literacy Level and Low Unemployment has strong correspondence with Medium Birth Level and High Education Level, which could potentially be associated with countries of higher development. There are certainly also surprising conclusions, like the fact that High Education Level and Low Birth Level has a strong correspondence with Low Literacy Level and High Unemployment. This relationship also appears to be stronger as it is further away from the origin of the plot. However, there are some combinations that seem to have little correspondence with anything, such as medium literacy level and high unemployment level, which are in the fourth quadrant. The straight inverse combinations (High-X and Low-Y) seem to have the most correspondence power.
 
 ## Question 5
-``` {r}
+``` {r }
 set.seed(124)
 
 pivot_data <- pivot_data %>%
@@ -152,8 +151,6 @@ for (j in 1:num_dimensions) {
   mds_result <- metaMDS(pivot_data, k = j, distance = "euclidean")
   results[21, j] <- mds_result$stress
 }
-
-mean(results$V2)
 
 ```
 
@@ -195,6 +192,9 @@ text(fig, "sites", col = "blue", cex = 0.8)
 
 ```
 
+NOTE: For the ensuing questions, some of the labels got corrupted with the phrase "literacy_unemployment_level". We were not able to debug this issue and it does not disrupt
+our analysis greatly.
+
 ## Question 8
 
 ``` {r}
@@ -227,7 +227,8 @@ plot(fit, col = "red", lwd = 3)
 fit
 ```
 
-Here we see college_completion_avg point generally in the direction of High Literacy Rate combinations.
+Here we see college_completion_avg point generally in the direction of High Literacy Rate combinations. 
+It is highly similar to those cateogories due to having a lower angle between them.
 Note: It was incredibly difficult wrangling the data to include a continuous variable, as our 
 data is not very well suited for it due to it not being an originally contingent data set.
 
