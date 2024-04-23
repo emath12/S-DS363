@@ -1,4 +1,8 @@
 ---
+output:
+  word_document: default
+  html_document: default
+---
 title: "PSET 7"
 output: html_document
 date: "2024-04-22"
@@ -10,12 +14,9 @@ date: "2024-04-22"
 install.packages("corrplot")
 install.packages("psych")
 install.packages("GPArotation")
-
 ```
 
 ```{r}
-
-
 library(dplyr)
 library(vegan)
 library(vegan3d)
@@ -26,18 +27,16 @@ library(ggplot2)
 library(tidyverse)
 library(corrplot)
 library(GPArotation)
-
 library(psych)
 
 ```
 
 ```{r setup, include=FALSE}
-eddata <- read.csv("Global_Education.csv")
+eddata <- read.csv("/Users/Tony/Desktop/class docs/semester 6/S&DS 363/Global_Education.csv")
 ```
 
 ## Question 2
 ```{r}
-
 #selecting columns we want to observe 
 eddata2 <- eddata[ ,c("Gross_Primary_Education_Enrollment", "Gross_Tertiary_Education_Enrollment" , "Unemployment_Rate", "Birth_Rate", "OOSR_Upper_Secondary_Age_Male","OOSR_Upper_Secondary_Age_Female", "Youth_15_24_Literacy_Rate_Male", "Youth_15_24_Literacy_Rate_Female")]
 
@@ -50,126 +49,75 @@ corrplot.mixed(cor(eddata2), lower.col = "black", upper = "ellipse", tl.col = "b
 
 ## Question 3
 ```{r}
-
 KMO(as.matrix(eddata2))
-
 ```
 
-Off the bat given how low the majprity of the correlations are within the correlation matrix we are wary of how well suited our data is for factor analysis. While there are some exceptions the majority of correlations range from around +/- 0.1-0.4. With over 200 rows the size of our data is fine to do factor analysis with, although more entries would make for more robust results, but we are obviously limited by how many countries exist. Finally we are hopeful in our ability to identify underlying latent factors as we are considering 
+Off the bat given how low the majority of the correlations are within the correlation matrix we are wary of how well suited our data is for factor analysis. This is also seen in our KMO score which being below 0.50 is considered "mauled". 
 
-**talk about kmo when we can run it lol**
+While there are some exceptions the majority of correlations range from around +/- 0.1-0.4. With over 200 rows the size of our data is fine to do factor analysis with, although more entries would make for more robust results, but we are obviously limited by how many countries exist. In summary we are only mildly hopeful in our ability to identify underlying latent factors given our low KMO and lack of strong correlations. 
+
 
 ## Question 4: Use Principal Components (or appropriate option in Factor Analysis) to decide on a number of latent factors. You can use Scree Plot, eigenvalue>1, or parallel analysis
 
 ```{r}
-
 (pc1 <- princomp(eddata2, cor = TRUE))
-
 screeplot(pc1, type = "lines", col = "red", lwd = 2, pch = 19, cex = 1.2,  main = "Scree Plot of Raw WB Data")
-
-
 ```
-If we utilize the eigenvalue greater than 1 method we can estimate that there are around three latent factors that properly explain the variability of our data. This aligns with the scree plot as we see an elbow at four components, telling us to cut off at around 3. 
+If we utilize the eigenvalue greater than 1 method we can estimate that there are around three latent factors that properly explain the variability of our data. This aligns with the scree plot as we see an elbow at four components, telling us to cut off at around 3-4. 
 
 
-##Question 5: Perform a series of factor analyses using orthogonal models. First, try at least two extraction methods (choose from Principal Components, Principle Axis Factoring, Iterative PCA or iterative PAF, Maximum Likelihood). Use some method for comparing extraction methods to choose a ‘best’ method (i.e. RMSR or # residuals greater than .05).
+## Question 5: Perform a series of factor analyses using orthogonal models. First, try at least two extraction methods (choose from Principal Components, Principle Axis Factoring, Iterative PCA or iterative PAF, Maximum Likelihood). Use some method for comparing extraction methods to choose a ‘best’ method (i.e. RMSR or # residuals greater than .05).
 ```{r}
-
-#Maximum Likelihood w/ 2 Factor Solution 
-
+#Maximum Likelihood w/ 2 and 3 Factor Solution 
 fact0 <- factanal(eddata2, factors = 2, rotation = "varimax")
-fact0
-
 fact1 <- factanal(eddata2, factors = 3, rotation = "varimax")
-fact1
-
-#get reproduced correlation matrix
 repro1 <- fact1$loadings%*%t(fact1$loadings)
-
-#residual correlation matrix
 resid1 <- fact1$cor - repro1
 round(resid1, 2)
-
 len <- length(resid1[upper.tri(resid1)])
 (RMSR1 <- sqrt(sum(resid1[upper.tri(resid1)]^2)/len))
-
-#get proportion of residuals greater than 0.05 in absolute value
 paste0(round(sum(rep(1, len)[abs(resid1[upper.tri(resid1)])>0.05])/len*100),"%")
 
-
-
 #PAF 
-
 fact2 <- fa(eddata2, nfactors = 3, rotate = "varimax", fm = "pa")
-fact2
-
-#get reproduced correlation matrix
 repro2 <- fact2$loadings%*%t(fact2$loadings)
-#residual correlation matrix
 resid2 <- cor(eddata2)-repro2
 round(resid2, 2)
-
-#get root-mean squared residuals - already provided in output actually
 len <- length(resid2[upper.tri(resid2)])
 (RMSR2 <- sqrt(sum(resid2[upper.tri(resid2)]^2)/len))
-
-#get proportion of residuals greater than 0.05 in absolute value
 paste0(round(sum(rep(1, len)[abs(resid2[upper.tri(resid2)])>0.05])/len*100),"%")
 
-
-
 #Iterative PCA 
-
 fact3 <- fa(eddata2, nfactors = 3, rotate = "varimax", SMC = FALSE, fm = "pa")
-fact3
-
-#get reproduced correlation matrix
 repro3 <- fact3$loadings%*%t(fact3$loadings)
-#residual correlation matrix
 resid3 <- cor(eddata2)-repro3
 round(resid3, 2)
-
-#get root-mean squared residuals - again, in output above
 len <- length(resid3[upper.tri(resid3)])
 RMSR3 <- sqrt(sum(resid3[upper.tri(resid3)]^2)/len)
-RMSR3
-
-#get proportion of residuals greater than 0.05 in absolute value
 paste0(round(sum(rep(1, len)[abs(resid3[upper.tri(resid3)])>0.05])/len*100),"%")
-
 ```
 
-In doing maximum likelihood analysis we found first after testing with two and three factors that neither were  sufficient in explaining our data with very low p-values where we rejected the nul hypothesis that 2/3 factors would properly explain our data. Utilzing the 3 factor analysis, nonetheless, as it had a greater p-value and aligned with our PCA we then found that around 11% of the residuals were greater than 0.05 and that the RMSR was around 0.085. It is important to note, however, that of the residuals above 0.05 they were often far over that limit reaching sometimes a value of 0.9, which makes us even more wary of to what extent maximum likelihood analysis can explain our data. 
+* We utilized three forms of analysis, going above and beyond what was requested in the question. In doing maximum likelihood analysis we found first after testing with two and three factors that neither were  sufficient in explaining our data with very low p-values where we rejected the nul hypothesis that 2/3 factors would properly explain our data. Utilzing the 3 factor analysis, nonetheless, as it had a greater p-value and aligned with our PCA we then found that around 11% of the residuals were greater than 0.05 and that the RMSR was around 0.085. It is important to note, however, that of the residuals above 0.05 they were often far over that limit reaching sometimes a value of 0.9, which makes us even more wary of to what extent maximum likelihood analysis can explain our data. In performing PAF and iterative PCA we found both of these methods to be worse models of our data as the proportion of residuals above 0.05 was 32% and 29% as compared to only 11% with maximum liklihood. 
 
-
-##Question 6: Once you’ve chosen an extraction method, try a varimax and/or a quartimax rotation. Pick one of these rotations and discuss the interpretation of the final factors. Make one or more loading plots as appropriate.
+## Question 6: Once you’ve chosen an extraction method, try a varimax and/or a quartimax rotation. Pick one of these rotations and discuss the interpretation of the final factors. Make one or more loading plots as appropriate.
 
 Note: a loading plot may aid in deciding which variables load more heavily on which variables.
 ```{r}
+fact1q <- fa(eddata2, nfactors = 3, rotate = "quartimax")
+fact1q
 
-# replace with besto ne
+plot(fact1$loadings[, c(1, 2)], pch = 18, col = 'red', main = "Varimax Rotation")
+abline(h = 0)
+abline(v = 0)
+text(fact0$loadings, labels = names(eddata2), cex = 0.8)
 
-fact0 <- factanal(eddata2, factors = 2, rotation = "varimax")
-fact0
-
-fact0 <- fa(eddata2, nfactors = 2, rotate = "quartimax")
-fact0
-
-fact1 <- factanal(eddata2, factors = 3, rotation = "varimax")
-fact1
-
-fact1 <- fa(eddata2, nfactors = 3, rotate = "quartimax")
-fact1
-
-plot(fact0$loadings[, c(1, 2)], pch = 18, col = 'red')
-
-
-plot(fact1$loadings[, c(1, 2)], pch = 18, col = 'red')
-
-
-
-
+plot(fact1q$loadings[, c(1, 2)], pch = 18, col = 'red', main = "Quartimax Rotation")
+abline(h = 0)
+abline(v = 0)
+text(fact1$loadings, labels = names(eddata2), cex = 0.8)
 ```
+* We chose to use maximum likelihood with three factors (matching our PCA) as it had the lowest proportion of residuals above 0.05 as the RMSR scores of each tried method were similar. Upon doing both a varimax and quartimax rotation we decided a varimax was best as the differences  between the two were not very significant andd varimax is more widely used within the social sciences (both loadings are displayed). 
+* Our two primary latent factors, as represented by two axes, we will call infrastructure and basic educational attainment. The first, represented horizontally, is infrastructure — largely determining similar quality-of-life statistics like birth rate, unemployment rate, and out of school rate for older students. On the other hand, our vertical axis (which we call basic educational attainment)  reflects education at early stages (primary age) and youth-literacy rates. In other words, the first axis which explains our first latent factor- what seems to be the stronger of the two—seems to reflect broader developmental trends that then allow higher levels of education, accompanied by other signs of development that we've previously listed. On the other hand, the second latent factor reflects more direct and basic levels of education—particularly, literacy. 
 
-
-##Question 7  
+##Question 7
+* As stated previously, our dataset is not particularly well-suited for factor analysis. However, we still observe two latent factors—which we call infrastructure and basic educational attainment, respectively. Using maximum likelihood analysis, we found that 2-3 factors was insufficient. We conclude, then, that there are likely 3 latent factors based on our principal components analysis. However, this was not reflected as well in our loadings. We determined that using PCA might be better for our data, given that the latent factors were not known clearly to begin with. This is also in line with our earlier work on this dataset using PCA, which was largely successful along lines of out of school rates and school entrance rates.
