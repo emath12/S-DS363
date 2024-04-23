@@ -7,6 +7,15 @@ date: "2024-04-22"
 ### Karim, Mathieu, Ruan
 
 ```{r}
+install.packages("corrplot")
+install.packages("psych")
+install.packages("GPArotation")
+
+```
+
+```{r}
+
+
 library(dplyr)
 library(vegan)
 library(vegan3d)
@@ -15,6 +24,11 @@ library(MASS)
 library(rgl)
 library(ggplot2)
 library(tidyverse)
+library(corrplot)
+library(GPArotation)
+
+library(psych)
+
 ```
 
 ```{r setup, include=FALSE}
@@ -29,14 +43,15 @@ eddata2 <- eddata[ ,c("Gross_Primary_Education_Enrollment", "Gross_Tertiary_Educ
 
 #correlation matrix 
 round(cor(eddata2),2)
+
+corrplot.mixed(cor(eddata2), lower.col = "black", upper = "ellipse", tl.col = "black", number.cex = .7, tl.pos = "lt", tl.cex = .7, p.mat = cor.mtest(eddata2, conf.level = .95)$p, sig.level = .05)
 ```
 * We observe one strong relationship—namely, the relationship between Out of School Rate (OOSR) for upper-secondary-age males and females. This is interesting in exploring questions of gender inequality compared to broader educational development. There seems to be moderately strong relationships with OOSR for females and birth rate, perhaps suggesting that as there are more children being born, you find less female enrollment in school. Unemployment rate is also strikingly uncorrelated to any of the other measurements. This is fairly surprising, but can perhaps be explained by the pervasiveness of manual labor that does not require extended educational resources.
 
 ## Question 3
 ```{r}
-paf(as.matrix(eddata2))$KMO
 
-KMO(as.matrix(WB2))
+KMO(as.matrix(eddata2))
 
 ```
 
@@ -128,8 +143,28 @@ In doing maximum likelihood analysis we found first after testing with two and t
 
 
 ##Question 6: Once you’ve chosen an extraction method, try a varimax and/or a quartimax rotation. Pick one of these rotations and discuss the interpretation of the final factors. Make one or more loading plots as appropriate.
+
 Note: a loading plot may aid in deciding which variables load more heavily on which variables.
 ```{r}
+
+# replace with besto ne
+
+fact0 <- factanal(eddata2, factors = 2, rotation = "varimax")
+fact0
+
+fact0 <- fa(eddata2, nfactors = 2, rotate = "quartimax")
+fact0
+
+fact1 <- factanal(eddata2, factors = 3, rotation = "varimax")
+fact1
+
+fact1 <- fa(eddata2, nfactors = 3, rotate = "quartimax")
+fact1
+
+plot(fact0$loadings[, c(1, 2)], pch = 18, col = 'red')
+
+
+plot(fact1$loadings[, c(1, 2)], pch = 18, col = 'red')
 
 
 
@@ -137,5 +172,4 @@ Note: a loading plot may aid in deciding which variables load more heavily on wh
 ```
 
 
-##Question 7 
-
+##Question 7  
