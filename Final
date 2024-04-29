@@ -1,0 +1,118 @@
+---
+title: "Final"
+output: html_document
+date: "2024-04-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+install.packages("corrplot", repos='http://cran.us.r-project.org')
+install.packages("psych", repos='http://cran.us.r-project.org')
+install.packages("GPArotation", repos='http://cran.us.r-project.org')
+```
+
+```{r}
+library(dplyr)
+library(vegan)
+library(vegan3d)
+library(mgcv)
+library(MASS)
+library(rgl)
+library(ggplot2)
+library(tidyverse)
+library(corrplot)
+library(GPArotation)
+library(psych)
+library(PerformanceAnalytics)
+library(heplots)
+```
+* 
+
+```{r}
+# Load required library
+library(ggplot2)
+
+# Create histograms for each variable
+hist_attr <- ggplot(log_speeddate, aes(x = attr)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Attraction", x = "Attraction Score", y = "Frequency")
+
+hist_sinc <- ggplot(log_speeddate, aes(x = sinc)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Sincerity", x = "Sincerity Score", y = "Frequency")
+
+hist_intel <- ggplot(log_speeddate, aes(x = intel)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Intelligence", x = "Intelligence Score", y = "Frequency")
+
+hist_fun <- ggplot(log_speeddate, aes(x = fun)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Fun", x = "Fun Score", y = "Frequency")
+
+hist_amb <- ggplot(log_speeddate, aes(x = amb)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Ambition", x = "Ambition Score", y = "Frequency")
+
+hist_shar <- ggplot(log_speeddate, aes(x = shar)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Shared Interests", x = "Shared Interests Score", y = "Frequency")
+
+hist_like <- ggplot(log_speeddate, aes(x = like)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Likability", x = "Likability Score", y = "Frequency")
+
+
+
+hist_attr
+hist_sinc
+hist_intel
+hist_fun
+hist_amb
+hist_shar
+hist_like
+```
+
+```{r}
+speeddate <- read.csv("speeddating.csv")
+speeddate <- speeddate %>% 
+  mutate(across(everything(), ~ replace(., is.infinite(.), NA)))
+speeddate <- speeddate[ , c("gender","age","imprace","imprelig","attr_o","sinc_o")]
+speeddate <- na.omit(speeddate)
+sqrt_speeddate <- sqrt(speeddate)
+log_speeddate <- log(speeddate)
+
+pca_speeddate <- speeddate[ , c(7,10,12,13)]
+pca_speeddate <- pca_speeddate %>% 
+  mutate(across(everything(), ~ replace(., is.infinite(.), NA)))
+pca_speeddate <- na.omit(pca_speeddate)
+
+corrplot.mixed(cor(pca_speeddate[,]), lower.col = "black", upper = "ellipse", tl.col = "black", number.cex = .7, order = "hclust", tl.pos = "lt", tl.cex = .7)
+
+boxplot(speeddate$attr)
+boxplot(speeddate$sinc)
+boxplot(speeddate$intel)
+boxplot(speeddate$fun) #problem
+boxplot(speeddate$amb)
+boxplot(speeddate$shar) #problem
+boxplot(speeddate$like) 
+boxplot(speeddate$income)
+```
+
+```{r}
+summary(speeddate$fun)
+summary(speeddate$fun)
+
+```
+
+
+```{r}
+cqplot(speeddate, main = "speeddate")
+```
+
+### Cluster, Discriminant, PCA
+```{r}
+
+```
