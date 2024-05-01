@@ -35,61 +35,68 @@ library(heplots)
 # Load required library
 library(ggplot2)
 
-# Create histograms for each variable
-hist_attr <- ggplot(log_speeddate, aes(x = attr)) +
+hist_income <- ggplot(speeddate, aes(x = income)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Income", x = "Income", y = "Frequency")
+
+hist_attr <- ggplot(speeddate, aes(x = attr)) +
   geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
   labs(title = "Attraction", x = "Attraction Score", y = "Frequency")
 
-hist_sinc <- ggplot(log_speeddate, aes(x = sinc)) +
+hist_sinc <- ggplot(speeddate, aes(x = sinc)) +
   geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
   labs(title = "Sincerity", x = "Sincerity Score", y = "Frequency")
 
-hist_intel <- ggplot(log_speeddate, aes(x = intel)) +
+hist_intel <- ggplot(speeddate, aes(x = intel)) +
   geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
   labs(title = "Intelligence", x = "Intelligence Score", y = "Frequency")
 
-hist_fun <- ggplot(log_speeddate, aes(x = fun)) +
+hist_fun <- ggplot(speeddate, aes(x = fun)) +
   geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
   labs(title = "Fun", x = "Fun Score", y = "Frequency")
 
-hist_amb <- ggplot(log_speeddate, aes(x = amb)) +
+hist_amb <- ggplot(speeddate, aes(x = amb)) +
   geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
   labs(title = "Ambition", x = "Ambition Score", y = "Frequency")
 
-hist_shar <- ggplot(log_speeddate, aes(x = shar)) +
+hist_shar <- ggplot(speeddate, aes(x = shar)) +
   geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
   labs(title = "Shared Interests", x = "Shared Interests Score", y = "Frequency")
 
-hist_like <- ggplot(log_speeddate, aes(x = like)) +
+hist_like <- ggplot(speeddate, aes(x = like)) +
   geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
   labs(title = "Likability", x = "Likability Score", y = "Frequency")
 
-
-
-hist_attr
-hist_sinc
-hist_intel
-hist_fun
-hist_amb
-hist_shar
-hist_like
+print(hist_income)
+print(hist_attr)
+print(hist_sinc)
+print(hist_intel)
+print(hist_fun)
+print(hist_amb)
+print(hist_shar)
+print(hist_like)
 ```
 
 ```{r}
-speeddate <- read.csv("speeddating.csv")
-speeddate <- speeddate %>% 
+speeddate <- read.csv("speed_data_data.csv")
+speeddate <- speeddate %>%  # Pick out only individual people
+  group_by(income) %>% 
+  filter(row_number() == 1) %>% 
+  ungroup()
+speeddate <- speeddate %>% # Filter out infinites
   mutate(across(everything(), ~ replace(., is.infinite(.), NA)))
-speeddate <- speeddate[ , c("gender","age","imprace","imprelig","attr_o","sinc_o")]
 speeddate <- na.omit(speeddate)
+speeddate <- speeddate[ , c(3,7:13)]
+speeddate$income <- scale(speeddate$income)
+
+
 sqrt_speeddate <- sqrt(speeddate)
 log_speeddate <- log(speeddate)
-
-pca_speeddate <- speeddate[ , c(7,10,12,13)]
-pca_speeddate <- pca_speeddate %>% 
+log_speeddate <- log_speeddate %>% # Filter out infinites
   mutate(across(everything(), ~ replace(., is.infinite(.), NA)))
-pca_speeddate <- na.omit(pca_speeddate)
+log_speeddate <- na.omit(log_speeddate)
 
-corrplot.mixed(cor(pca_speeddate[,]), lower.col = "black", upper = "ellipse", tl.col = "black", number.cex = .7, order = "hclust", tl.pos = "lt", tl.cex = .7)
+corrplot.mixed(cor(speeddate[,]), lower.col = "black", upper = "ellipse", tl.col = "black", number.cex = .7, order = "hclust", tl.pos = "lt", tl.cex = .7)
 
 boxplot(speeddate$attr)
 boxplot(speeddate$sinc)
@@ -109,10 +116,10 @@ summary(speeddate$fun)
 
 
 ```{r}
-cqplot(speeddate, main = "speeddate")
+cqplot(speeddate[,c(-2)], main = "speeddate")
 ```
 
-### Cluster, Discriminant, PCA
+### Manova, Discriminant, PCA
 ```{r}
 
 ```
