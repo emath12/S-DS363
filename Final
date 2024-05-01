@@ -9,12 +9,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-install.packages("corrplot", repos='http://cran.us.r-project.org')
-install.packages("psych", repos='http://cran.us.r-project.org')
-install.packages("GPArotation", repos='http://cran.us.r-project.org')
-```
-
-```{r}
 library(dplyr)
 library(vegan)
 library(vegan3d)
@@ -29,7 +23,53 @@ library(psych)
 library(PerformanceAnalytics)
 library(heplots)
 ```
-* 
+
+```{r}
+speeddate <- read.csv("speed_data_data.csv")
+speeddate <- speeddate %>%  # Pick out only individual people
+  group_by(income) %>% 
+  filter(row_number() == 1) %>% 
+  ungroup()
+speeddate <- speeddate %>% # Filter out infinites
+  mutate(across(everything(), ~ replace(., is.infinite(.), NA)))
+speeddate <- na.omit(speeddate)
+speeddate <- speeddate[ , c(1,2,3,7:13)]
+speeddate$income <- scale(speeddate$income)
+```
+
+```{r}
+cqplot(speeddate, main = "speeddate")
+```
+
+```{r} 
+## Experiments
+sqrt_speeddate <- sqrt(speeddate)
+log_speeddate <- log(speeddate)
+log_speeddate <- log_speeddate %>% # Filter out infinites
+  mutate(across(everything(), ~ replace(., is.infinite(.), NA)))
+log_speeddate <- na.omit(log_speeddate)
+
+corrplot.mixed(cor(speeddate[,]), lower.col = "black", upper = "ellipse", tl.col = "black", number.cex = .7, order = "hclust", tl.pos = "lt", tl.cex = .7)
+
+# Assuming "speeddate" is your dataset
+
+# Define the columns for boxplot
+columns <- c("attraction", "sincerity", "intelligence", "fun", "ambition", "shared_interests", "like", "income")
+
+# Create a new plot
+par(mfrow = c(1, 1)) # Set the plot layout to one plot
+
+# Create a boxplot for each column
+boxplot_colors <- c("pink", "skyblue1", "violet", "lightsalmon1", "seashell", "powderblue", "lavender", "orchid")
+
+boxplot(speeddate[,2:9], 
+        main = "Boxplot of Attributes", # Title of the plot
+        names = c("Attraction", "Sincerity", "Intelligence", "Fun", "Ambition", "Shared Interests", "Like", "Income"), # Labels for the columns
+        xlab = "Attributes", # Label for x-axis
+        ylab = "Values", # Label for y-axis
+        col = boxplot_colors # Assign colors to boxplots
+)
+```
 
 ```{r}
 # Load required library
@@ -67,59 +107,19 @@ hist_like <- ggplot(speeddate, aes(x = like)) +
   geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
   labs(title = "Likability", x = "Likability Score", y = "Frequency")
 
-print(hist_income)
-print(hist_attr)
-print(hist_sinc)
-print(hist_intel)
-print(hist_fun)
-print(hist_amb)
-print(hist_shar)
-print(hist_like)
-```
+hist_income # log
+hist_attr
+hist_sinc # log
+hist_intel # log
+hist_fun # log
+hist_amb
+hist_shar
+hist_like # log
 
-```{r}
-speeddate <- read.csv("speed_data_data.csv")
-speeddate <- speeddate %>%  # Pick out only individual people
-  group_by(income) %>% 
-  filter(row_number() == 1) %>% 
-  ungroup()
-speeddate <- speeddate %>% # Filter out infinites
-  mutate(across(everything(), ~ replace(., is.infinite(.), NA)))
-speeddate <- na.omit(speeddate)
-speeddate <- speeddate[ , c(3,7:13)]
-speeddate$income <- scale(speeddate$income)
-
-
-sqrt_speeddate <- sqrt(speeddate)
-log_speeddate <- log(speeddate)
-log_speeddate <- log_speeddate %>% # Filter out infinites
-  mutate(across(everything(), ~ replace(., is.infinite(.), NA)))
-log_speeddate <- na.omit(log_speeddate)
-
-corrplot.mixed(cor(speeddate[,]), lower.col = "black", upper = "ellipse", tl.col = "black", number.cex = .7, order = "hclust", tl.pos = "lt", tl.cex = .7)
-
-boxplot(speeddate$attr)
-boxplot(speeddate$sinc)
-boxplot(speeddate$intel)
-boxplot(speeddate$fun) #problem
-boxplot(speeddate$amb)
-boxplot(speeddate$shar) #problem
-boxplot(speeddate$like) 
-boxplot(speeddate$income)
-```
-
-```{r}
-summary(speeddate$fun)
-summary(speeddate$fun)
-
-```
-
-
-```{r}
-cqplot(speeddate[,c(-2)], main = "speeddate")
 ```
 
 ### Manova, Discriminant, PCA
 ```{r}
 
 ```
+
