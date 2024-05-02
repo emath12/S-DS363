@@ -6,6 +6,7 @@ date: "2024-04-29"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+install.packages("PerformanceAnalytics")
 ```
 
 ```{r}
@@ -262,5 +263,33 @@ partimat(forbs$CAT ~ N + GS, data = forbs, method = "lda")
 
 
 ```
-```
 
+```{r MANOVA}
+
+speeddate <- na.omit(speeddate)  
+
+dependent_vars <- cbind(speeddate$attr, speeddate$sinc, speeddate$intel, speeddate$fun, speeddate$amb, speeddate$shar)
+independent_vars <- speeddate$gender + speeddate$age + speeddate$income
+
+manova_results <- manova(dependent_vars ~ independent_vars)
+
+summary(manova_results, test = "Pillai")
+summary(manova_results, test = "Wilks")
+summary(manova_results, test = "Roy")
+
+speeddate$age_group <- cut(speeddate$age, breaks = 3, labels = c("Young", "Middle", "Older"))
+
+interaction.plot(speeddate$age_group, speeddate$gender, speeddate$attr,
+                 main = "Interaction Plot",
+                 xlab = "Age Group",
+                 ylab = "Average Attraction Score",
+                 trace.label = "Gender",
+                 fixed = TRUE,
+                 type = "b",
+                 pch = c(18, 24),
+                 col = c("red", "blue"),
+                 lty = 1:2)
+
+
+
+```
