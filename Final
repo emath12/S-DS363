@@ -266,30 +266,69 @@ partimat(forbs$CAT ~ N + GS, data = forbs, method = "lda")
 
 ```{r MANOVA}
 
-speeddate <- na.omit(speeddate)  
+# Load necessary library
+library(dplyr)
 
-dependent_vars <- cbind(speeddate$attr, speeddate$sinc, speeddate$intel, speeddate$fun, speeddate$amb, speeddate$shar)
-independent_vars <- speeddate$gender + speeddate$age + speeddate$income
+speeddate_male <- speeddate |>
+  filter(speeddate$gender == 0)
 
-manova_results <- manova(dependent_vars ~ independent_vars)
+speeddate_female <- speeddate |>
+  filter(speeddate$gender == 1)
 
-summary(manova_results, test = "Pillai")
-summary(manova_results, test = "Wilks")
-summary(manova_results, test = "Roy")
+speeddate <- speeddate %>%
+  mutate(income_bracket = ntile(income, 4)) %>%
+  mutate(income_bracket = factor(income_bracket, labels = c("Low", "Medium", "High", "Very High")))
 
-speeddate$age_group <- cut(speeddate$age, breaks = 3, labels = c("Young", "Middle", "Older"))
+speeddate <- speeddate %>%
+  mutate(age_group = cut(age, breaks = c(18, 30, 40, 55), labels = c("18-30", "31-40", "41-55")))
 
-interaction.plot(speeddate$age_group, speeddate$gender, speeddate$attr,
-                 main = "Interaction Plot",
-                 xlab = "Age Group",
-                 ylab = "Average Attraction Score",
-                 trace.label = "Gender",
-                 fixed = TRUE,
-                 type = "b",
-                 pch = c(18, 24),
-                 col = c("red", "blue"),
-                 lty = 1:2)
+manova_result <- aov(intel ~ income_bracket, data = speeddate_male)
+summary(manova_result
+        )
+
+manova_result <- aov(attr ~ income_bracket, data = speeddate_female)
+summary(manova_result
+        )
 
 
+manova_result <- aov(attr ~ income_bracket, data = speeddate)
+summary(manova_result
+        )
+
+#model_poly <- lm(attr ~ age + I(age^2), data = speeddate_male)
+#summary(model_poly)
+
+#model_poly <- lm(attr ~ age + I(age^2), data = speeddate_female)
+#summary(model_poly)
+
+# Ensure income_bracket is a factor if not already
+#speeddate$income_bracket <- factor(speeddate$income_bracket)
+manova_model <- manova(cbind(attr, like) ~ income_bracket, data = speeddate_female)
+summary(manova_model)
+
+manova_model <- manova(cbind(attr, like) ~ income_bracket, data = speeddate_male)
+summary(manova_model)
+
+
+# Using interaction.plot to examine the effects of income bracket and age group on attractiveness
+interaction.plot(x.factor = speeddate$age_group, trace.factor = speeddate$gender, response = speeddate$attr, 
+                 type = "l", 
+                 lty = c(1, 1), # Solid for one gender, dashed for the other
+                 col = c("blue", "orange"), # Different colors for each gender
+                 xlab = "Age Bracket", ylab = "Average Attractiveness Score",
+                 legend = FALSE)
+
+interaction.plot(x.factor = speeddate$income_bracket, trace.factor = speeddate$gender, response = speeddate$attr, 
+                 type = "l", 
+                 lty = c(1, 1), # Solid for one gender, dashed for the other
+                 col = c("blue", "orange"), # Different colors for each gender
+                 xlab = "Income Bracket", ylab = "Average Attractiveness Score",
+                 legend = FALSE)
+              
+legend("topright", # Position of the legend within the plot area
+       legend = c("Male Perc. Attractivness", "Female Perc. Attractiveness"), # Descriptive text for each line
+       col = c("blue", "orange"), # Colors for each line in the legend
+       lty = c(1, 1), # Line types for each line in the legend
+       cex = 0.8) # Scaling factor for text and symbols in the legend
 
 ```
